@@ -5,27 +5,11 @@
 DS18 sensor(D2);
 
 SENSORS::SENSORS(void) {
-  uint8_t addr[8];
-  sensor.addr(addr);
-  char buffer[2048];
-
   beerF = UNKNOWN;
   chamberF = UNKNOWN;
   ambientF = UNKNOWN;
 
-  while (sensor.read()) {
-    sprintf(buffer,
-      " ROM=%02X%02X%02X%02X%02X%02X%02X%02X",
-      addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], addr[6], addr[7]);
-
-    if (strcmp(types[BEER],buffer) == 0) {
-      beerF = sensor.fahrenheit();
-    } else if (strcmp(types[CHAMBER],buffer) == 0) {
-      chamberF = sensor.fahrenheit();
-    } else if (strcmp(types[AMBIENT],buffer) == 0) {
-      ambientF = sensor.fahrenheit();
-    }
-  }
+  refresh();
 
   if (sensor.searchDone()) {
     // Do something cool with the temperature
@@ -34,26 +18,48 @@ SENSORS::SENSORS(void) {
 
 void SENSORS::refresh(void) {
   // Read the next available 1-Wire temperature sensor
-  if (sensor.read()) {
-    while (!sensor.searchDone()) {
-      // Do something cool with the temperature
+  uint8_t addr[8];
+  char buffer[2048];
+
+  sensor.read();
+  while (!sensor.searchDone()) {
+    Serial.printf("In refresh\n\r");
+    
+    sensor.addr(addr);
+    sprintf(buffer,
+      "%02X%02X%02X%02X%02X%02X%02X%02X",
+      addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], addr[6], addr[7]);
+
+    Serial.printf("\n\rSensor Address = %s; Beer Address = %s\n\r",
+                  buffer, types[BEER]);
+
+    if (strcmp(types[BEER],buffer) == 0) {
+      beerF = sensor.fahrenheit();
+    } else if (strcmp(types[CHAMBER],buffer) == 0) {
+      chamberF = sensor.fahrenheit();
+    } else if (strcmp(types[AMBIENT],buffer) == 0) {
+      ambientF = sensor.fahrenheit();
     }
 
-    // Additional info useful while debugging
-    printDebugInfo();
+    delay(2000);
+    sensor.read();
+  }
+
+  // Additional info useful while debugging
 
   // If sensor.read() didn't return true you can try again later
   // This next block helps debug what's wrong.
   // It's not needed for the sensor to work properly
-  } else {
-    // Once all sensors have been read you'll get searchDone() == true
-    // Next time read() is called the first sensor is read again
-    if (sensor.searchDone()) {
-      //Serial.println("No more addresses.");
-    } else { // Something went wrong
-      printDebugInfo();
-    } // sensor.searchDone()
-  } // sensor.read()
+
+  // Once all sensors have been read you'll get searchDone() == true
+  // Next time read() is called the first sensor is read again
+  if (sensor.searchDone()) {
+    Serial.println("No more addresses.");
+    printDebugInfo();
+  } else { // Something went wrong
+    Serial.println("Hmmmmm...");
+    printDebugInfo();
+  } // sensor.searchDone()
 
 }
 
@@ -99,6 +105,18 @@ double SENSORS::GetTempF(mode_t mode) {
     return chamberF;
   } else if (mode == AMBIENT) {
     return ambientF;
+  }
+
+  return UNKNOWN;
+}
+
+double SENSORS::GetTempC(mode_t mode) {
+  if (mode == BEER) {
+    return beerC;
+  } else if (mode == CHAMBER) {
+    return chamberC;
+  } else if (mode == AMBIENT) {
+    return ambientC;
   }
 
   return UNKNOWN;

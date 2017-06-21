@@ -93,12 +93,12 @@ void setup()
     }
 
     // Init pid fields
-    Input = 74.7;
-    Setpoint = 64.0;
+    Input = 76.0;
+    Setpoint = 76.0;
 
     // Turn on pid
     myPID.SetMode(PID::AUTOMATIC);
-    myPID.SetOutputLimits(34.0,84.0);
+    myPID.SetOutputLimits(64.0,84.0);
 }
 
 /* This function loops forever --------------------------------------------*/
@@ -111,41 +111,60 @@ void loop()
     std::string now(Time.format(time, TIME_FORMAT_ISO8601_FULL));
     now.append("|");
 
+    Serial.printf("In Loop\n\r");
+
     //const uint8_t message[] = "Hello";
+    // Read the next available 1-Wire temperature sensor
+    mySensors.refresh();
+    Serial.printf("Beer %.2f F , Chamber%.2f F \n\r",
+                  mySensors.GetTempF(SENSORS::BEER),
+                  mySensors.GetTempF(SENSORS::CHAMBER));
+
+    Input = mySensors.GetTempF(SENSORS::BEER);
+    myPID.Compute();
+
+    sprintf(buffer, "Beer %.2f F | Chamber%.2f F \n\r",
+                  mySensors.GetTempF(SENSORS::BEER),
+                  mySensors.GetTempF(SENSORS::CHAMBER));
+
+    now.append(buffer);
+
+    sprintf(buffer, "%4.1f", Output);
+    now.append("|PID Output=");
+    now.append(buffer);
+    now.append("F");
+
+    // If the chamber is more than half a degree warmer than
+    // the PID output target then turn on cooling
+    if (mySensors.GetTempF(SENSORS::CHAMBER) - Output > 0.5) {
+      myRelays.coolON();
+    } else {
+      myRelays.coolOFF();
+    }
+
+    // If the chamber is more than half a degree cooler than
+    // the PID output target then turn on heating
+    if (mySensors.GetTempF(SENSORS::CHAMBER) - Output < 0.5) {
+      myRelays.heatON();
+    } else {
+      myRelays.heatOFF();
+    }
+
+    const uint8_t* message = reinterpret_cast<const uint8_t*>(now.c_str());
     if (WiFi.ready()) {
-        // Read the next available 1-Wire temperature sensor
-        mySensors.refresh();
-
-        if (mySensors.GetTempF(SENSORS::BEER) > 65) {
-          myRelays.coolON();
-        } else {
-          myRelays.coolOFF();
-        }
-
-        // Do something cool with the temperature
-        /*
-        Serial.printf("Temperature %.2f C %.2f F ", sensor.celsius(), sensor.fahrenheit());
-        sprintf(buffer, "%4.1f", sensor.fahrenheit());
-        now.append(buffer);
-        now.append("F");
-        */
-        Input = mySensors.GetTempF(SENSORS::BEER);
-        myPID.Compute();
-        sprintf(buffer, "%4.1f", Output);
-        now.append("|PID Output=");
-        now.append(buffer);
-        now.append("F");
-
-        const uint8_t* message = reinterpret_cast<const uint8_t*>(now.c_str());
-        unsigned int len = Udp.sendPacket(message, now.length(), remoteAddress, remotePort);
-        if (len == now.length()) {
-          Serial.printf("message = %s, sizeof = %d\n\r", message, now.length());
-          }
-
-      } // WiFi.ready()
+      unsigned int len = Udp.sendPacket(message,
+                                        now.length(),
+                                        remoteAddress,
+                                        remotePort);
+      if (len == now.length()) {
+        Serial.printf("message = %s, sizeof = %d\n\r", message, now.length());
+      }
+    } else {
+      Serial.printf("not sent = %s, sizeof = %d\n\r", message, now.length());
+    } // WiFi.ready()
 
     Serial.printf("\n\r");
 
     digitalWrite(ledPin, LOW);
-
+    delay(5000);
 }

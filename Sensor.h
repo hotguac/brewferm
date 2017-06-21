@@ -35,7 +35,9 @@ class SENSORS
 
     //Parameter types for some of the functions below
     enum mode_t { BEER = 0, CHAMBER = 1, AMBIENT = 2 };
-    const char *types[3] = {"2875857F08000063","2874AD7F08000092","0000000000000000"};
+    const char *types[3] = {"2875857F08000063",
+                            "2874AD7F08000092",
+                            "0000000000000000"};
 
     //commonly used functions **************************************************************************
     SENSORS(void);
@@ -58,8 +60,11 @@ class SENSORS
 
     void Initialize();
     float beerF;
+    float beerC;
     float chamberF;
+    float chamberC;
     float ambientF;
+    float ambientC;
 
     unsigned long lastTime;
 
