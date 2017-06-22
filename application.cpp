@@ -22,13 +22,16 @@
 #include "spark_wiring_wifi.h"
 #include "stdarg.h"
 
+
 PRODUCT_ID(PLATFORM_ID);
 PRODUCT_VERSION(3);
 SYSTEM_MODE(SEMI_AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-const char* SSID = "MK0924";
-const char* PASSWORD = "W1Th2P34pl5";
+// SSID and password #define'd in WiFi_Info.h
+#include "WiFi_Info.h"
+const char* SSID = MY_SSID;
+const char* PASSWORD = MY_PASSWORD;
 
 #if Wiring_WiFi
 STARTUP(System.enable(SYSTEM_FLAG_WIFITESTER_OVER_SERIAL1));
