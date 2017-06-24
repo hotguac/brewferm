@@ -10,10 +10,6 @@ SENSORS::SENSORS(void) {
   ambientF = UNKNOWN;
 
   refresh();
-
-  if (sensor.searchDone()) {
-    // Do something cool with the temperature
-  }
 }
 
 void SENSORS::refresh(void) {
@@ -23,43 +19,33 @@ void SENSORS::refresh(void) {
 
   sensor.read();
   while (!sensor.searchDone()) {
-    Serial.printf("In refresh\n\r");
-    
-    sensor.addr(addr);
-    sprintf(buffer,
-      "%02X%02X%02X%02X%02X%02X%02X%02X",
-      addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], addr[6], addr[7]);
+    //printDebugInfo();
 
-    Serial.printf("\n\rSensor Address = %s; Beer Address = %s\n\r",
-                  buffer, types[BEER]);
+    if (!sensor.crcError()) {
+      sensor.addr(addr);
+      sprintf(buffer,
+        "%02X%02X%02X%02X%02X%02X%02X%02X",
+        addr[0], addr[1], addr[2], addr[3],
+        addr[4], addr[5], addr[6], addr[7]);
 
-    if (strcmp(types[BEER],buffer) == 0) {
-      beerF = sensor.fahrenheit();
-    } else if (strcmp(types[CHAMBER],buffer) == 0) {
-      chamberF = sensor.fahrenheit();
-    } else if (strcmp(types[AMBIENT],buffer) == 0) {
-      ambientF = sensor.fahrenheit();
-    }
+      if (strcmp(types[BEER],buffer) == 0) {
+        beerF = sensor.fahrenheit();
+      } else if (strcmp(types[CHAMBER],buffer) == 0) {
+        chamberF = sensor.fahrenheit();
+      } else if (strcmp(types[AMBIENT],buffer) == 0) {
+        ambientF = sensor.fahrenheit();
+      }
+    } // !crcError
 
     delay(2000);
     sensor.read();
   }
 
-  // Additional info useful while debugging
-
-  // If sensor.read() didn't return true you can try again later
-  // This next block helps debug what's wrong.
-  // It's not needed for the sensor to work properly
-
   // Once all sensors have been read you'll get searchDone() == true
   // Next time read() is called the first sensor is read again
-  if (sensor.searchDone()) {
-    Serial.println("No more addresses.");
-    printDebugInfo();
-  } else { // Something went wrong
+  if (!sensor.searchDone()) {
     Serial.println("Hmmmmm...");
-    printDebugInfo();
-  } // sensor.searchDone()
+  } // !sensor.searchDone()
 
 }
 

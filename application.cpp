@@ -22,11 +22,10 @@
 #include "spark_wiring_wifi.h"
 #include "stdarg.h"
 
-
 PRODUCT_ID(PLATFORM_ID);
 PRODUCT_VERSION(3);
-SYSTEM_MODE(SEMI_AUTOMATIC);
-SYSTEM_THREAD(ENABLED);
+//SYSTEM_MODE(SEMI_AUTOMATIC);
+//SYSTEM_THREAD(ENABLED);
 
 // SSID and password #define'd in WiFi_Info.h
 #include "WiFi_Info.h"
@@ -41,13 +40,6 @@ int ledPin = D7;
 
 int def_delay;
 
-IPAddress remoteAddress(192,168,0,11);  // laptop
-int remotePort = 7777;
-
-int localPort = 8888;
-UDP Udp;
-char buffer[2048];
-
 #include "Sensor.h"
 SENSORS mySensors;
 
@@ -58,6 +50,9 @@ PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, PID::DIRECT);
 #include "relays.h"
 RELAYS myRelays;
 
+#include "comms.h"
+COMMS myComms;
+
 /* This function is called once at start up ----------------------------------*/
 void setup()
 {
@@ -67,12 +62,13 @@ void setup()
     digitalWrite(ledPin, HIGH);
 
     System.disableUpdates();
-    WiFi.setCredentials(SSID, PASSWORD, WPA2);
+    //WiFi.clearCredentials();
+    //WiFi.setCredentials(SSID, PASSWORD, WPA2);
     WiFi.on();
 
     delay(10 * 1000);
     WiFi.connect(WIFI_CONNECT_SKIP_LISTEN);
-    delay(20 * 1000);
+    delay(10 * 1000);
 
     Serial.begin(9600);
     while(!Serial.available()) Particle.process();
@@ -83,14 +79,14 @@ void setup()
         Serial.print("WiFi is ready using ");
         Serial.println(WiFi.SSID());
         Serial.println(WiFi.localIP());
-        Udp.begin(8888);
-        delay(def_delay);
         Particle.connect();
         delay(def_delay);
         Particle.syncTime();
         delay(def_delay);
         Particle.disconnect();
-    } else {
+        myComms.init();
+        delay(def_delay);
+} else {
         def_delay = 5 * 1000;
         Serial.println("WiFi not connected");
     }
@@ -109,64 +105,13 @@ void loop()
 {
     //This will run in a loop
     digitalWrite(ledPin, HIGH);
-
-    time_t time = Time.now();
-    std::string now(Time.format(time, TIME_FORMAT_ISO8601_FULL));
-    now.append("|");
-
-    Serial.printf("In Loop\n\r");
-
-    //const uint8_t message[] = "Hello";
-    // Read the next available 1-Wire temperature sensor
     mySensors.refresh();
-    Serial.printf("Beer %.2f F , Chamber%.2f F \n\r",
-                  mySensors.GetTempF(SENSORS::BEER),
-                  mySensors.GetTempF(SENSORS::CHAMBER));
 
     Input = mySensors.GetTempF(SENSORS::BEER);
     myPID.Compute();
 
-    sprintf(buffer, "Beer %.2f F | Chamber%.2f F \n\r",
-                  mySensors.GetTempF(SENSORS::BEER),
-                  mySensors.GetTempF(SENSORS::CHAMBER));
-
-    now.append(buffer);
-
-    sprintf(buffer, "%4.1f", Output);
-    now.append("|PID Output=");
-    now.append(buffer);
-    now.append("F");
-
-    // If the chamber is more than half a degree warmer than
-    // the PID output target then turn on cooling
-    if (mySensors.GetTempF(SENSORS::CHAMBER) - Output > 0.5) {
-      myRelays.coolON();
-    } else {
-      myRelays.coolOFF();
-    }
-
-    // If the chamber is more than half a degree cooler than
-    // the PID output target then turn on heating
-    if (mySensors.GetTempF(SENSORS::CHAMBER) - Output < 0.5) {
-      myRelays.heatON();
-    } else {
-      myRelays.heatOFF();
-    }
-
-    const uint8_t* message = reinterpret_cast<const uint8_t*>(now.c_str());
-    if (WiFi.ready()) {
-      unsigned int len = Udp.sendPacket(message,
-                                        now.length(),
-                                        remoteAddress,
-                                        remotePort);
-      if (len == now.length()) {
-        Serial.printf("message = %s, sizeof = %d\n\r", message, now.length());
-      }
-    } else {
-      Serial.printf("not sent = %s, sizeof = %d\n\r", message, now.length());
-    } // WiFi.ready()
-
-    Serial.printf("\n\r");
+    myRelays.controlTemp(mySensors.GetTempF(SENSORS::CHAMBER), Output);
+    myComms.sendStatus(mySensors, myRelays, Output);
 
     digitalWrite(ledPin, LOW);
     delay(5000);

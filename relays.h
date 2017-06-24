@@ -18,6 +18,8 @@ class RELAYS
     void coolON(void);
     void coolOFF(void);
 
+    void controlTemp(double current, double target);
+
     mode_t getHeatStatus();
     mode_t getCoolStatus();
 
@@ -25,10 +27,19 @@ class RELAYS
     int relayCoolPin = D4;
     int relayHeatPin = D5;
 
+    double min_heat_off_on = 60;  // seconds
+    double min_cool_heat   = 60;  // seconds
+    double min_cool_off_on = 300; // seconds
+    double min_heat_cool   = 120; // seconds
+
 	  unsigned long heatOnTime;
     mode_t heatStatus;
     mode_t coolStatus;
 
+    time_t ts_heatON;
+    time_t ts_heatOFF;
+    time_t ts_coolON;
+    time_t ts_coolOFF;
 };
 
 #endif

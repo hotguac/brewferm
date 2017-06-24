@@ -57,6 +57,8 @@ bool DS18::read(uint8_t addr[8]) {
     default:   _type = WIRE_UNKNOWN; return false;
   }
 
+  //Serial.printf("0x%02x\r\n", addr[0]);
+
   // Read the actual temperature!!!
 
   _wire.reset();               // first clear the 1-wire bus
