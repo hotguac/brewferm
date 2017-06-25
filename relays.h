@@ -8,7 +8,7 @@ class RELAYS
   public:
 
   //Parameter types for some of the functions below
-    enum mode_t { OFF = 0, ON = 1};
+    enum mode_t { OFF = 0, ON = 1, PENDING = 2};
     const char *types[3] = {"2875857F08000063","2874AD7F08000092","0000000000000000"};
 
   //commonly used functions **************************************************************************

@@ -2,6 +2,7 @@
 #define COMMS_h
 
 #include "application.h"
+#include "relays.h"
 
 class COMMS
 {
@@ -16,7 +17,11 @@ class COMMS
 
   private:
     time_t ts_lastSend;
-
+    double last_beerF;
+    double last_chamberF;
+    RELAYS::mode_t last_heatStatus;
+    RELAYS::mode_t last_coolStatus;
+    int min_send_time;
 };
 
 #endif

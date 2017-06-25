@@ -37,7 +37,7 @@ void SENSORS::refresh(void) {
       }
     } // !crcError
 
-    delay(2000);
+    delay(1000);
     sensor.read();
   }
 

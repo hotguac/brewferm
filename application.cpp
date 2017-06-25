@@ -114,5 +114,5 @@ void loop()
     myComms.sendStatus(mySensors, myRelays, Output);
 
     digitalWrite(ledPin, LOW);
-    delay(5000);
+    delay(250);
 }
