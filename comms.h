@@ -9,11 +9,12 @@ class COMMS
   public:
 
   //Parameter types for some of the functions below
-
   //commonly used functions **************************************************************************
-    COMMS(void);
+    COMMS(double *sp);
     void sendStatus(SENSORS mySensors, RELAYS myRelays, double Output);
     void init(void);
+    int setPointAvailable();
+    double getSetPoint();
 
   private:
     time_t ts_lastSend;

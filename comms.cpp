@@ -3,22 +3,32 @@
 
 #include "application.h"
 
+#define BUF_SIZE 2048
+
 IPAddress remoteAddress(192,168,0,11);  // laptop
 int remotePort = 7777;
 
 int localPort = 8888;
 UDP Udp;
-char buffer[2048];
+char buffer[BUF_SIZE];
+int setPointReceived = 0;
+double *setPoint;
 
-COMMS::COMMS(void) {
+COMMS::COMMS(double *sp) {
+  setPoint = sp;
   ts_lastSend = Time.now();
   last_beerF = 0.0; //default so we get first reading
   last_chamberF = 0.0;
-  min_send_time = 120; // seconds without sending something
+  min_send_time = 20; // seconds without sending something
 }
 
 void COMMS::init(void) {
-  Udp.begin(8888);
+  Udp.begin(localPort);
+  if (Udp.setBuffer(BUF_SIZE)) {
+    Serial.println("Udp buffer set");
+  } else {
+    Serial.println("Udp buffer set failed");
+  }
 }
 
 void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
@@ -43,7 +53,8 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
         std::string now(Time.format(current_time, TIME_FORMAT_ISO8601_FULL));
         now.append("|");
 
-        sprintf(buffer, "Br %.1fF|Ch%.1fF|Out%.1fF|H%d|C%d\r\n",
+        sprintf(buffer, "SP %.1fF|Br %.1fF|Ch%.1fF|Out%.1fF|H%d|C%d\r\n",
+                      *setPoint,
                       beerF,
                       chamberF,
                       Output,
@@ -65,4 +76,33 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
           Serial.printf("not sent = %s", message);
         } // WiFi.ready()
       }
+}
+
+int COMMS::setPointAvailable() {
+  int available = 0;
+  float temp;
+
+  Udp.parsePacket();
+  if (Udp.available()) {
+    int count = Udp.read(buffer, BUF_SIZE);
+    buffer[count] = ' '; // terminate the received string
+    buffer[count+1] = 0;
+    /*count = sscanf(buffer, "%f ", &temp);
+    if (count == 1) {
+      Serial.printf("Received UDP %f", temp);
+      *setPoint = temp;
+      available = 1;
+    } else {
+      Serial.printf("Received UDP with count %d string %s\r\n",
+                    count, buffer);
+
+    }
+    */
+    *setPoint = atof(buffer);
+  }
+  return available;
+}
+
+double COMMS::getSetPoint() {
+  return *setPoint;
 }

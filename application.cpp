@@ -45,13 +45,13 @@ SENSORS mySensors;
 
 #include "pid.h"
 double Setpoint, Input, Output;
-PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, PID::DIRECT);
+PID myPID(&Input, &Output, &Setpoint, 3, 5, 1, PID::DIRECT);
 
 #include "relays.h"
 RELAYS myRelays;
 
 #include "comms.h"
-COMMS myComms;
+COMMS myComms(&Setpoint);
 
 /* This function is called once at start up ----------------------------------*/
 void setup()
@@ -66,15 +66,15 @@ void setup()
     //WiFi.setCredentials(SSID, PASSWORD, WPA2);
     WiFi.on();
 
-    delay(10 * 1000);
+    delay(5 * 1000);
     WiFi.connect(WIFI_CONNECT_SKIP_LISTEN);
-    delay(10 * 1000);
+    delay(5 * 1000);
 
     Serial.begin(9600);
     while(!Serial.available()) Particle.process();
 
     if (WiFi.ready()) {
-        def_delay = 2 * 1000;
+        def_delay = 500;
 
         Serial.print("WiFi is ready using ");
         Serial.println(WiFi.SSID());
@@ -111,7 +111,11 @@ void loop()
     myPID.Compute();
 
     myRelays.controlTemp(mySensors.GetTempF(SENSORS::CHAMBER), Output);
+
     myComms.sendStatus(mySensors, myRelays, Output);
+    if (myComms.setPointAvailable()) {
+      Setpoint = myComms.getSetPoint();
+    }
 
     digitalWrite(ledPin, LOW);
     delay(250);
