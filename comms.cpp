@@ -53,7 +53,7 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
         std::string now(Time.format(current_time, TIME_FORMAT_ISO8601_FULL));
         now.append("|");
 
-        sprintf(buffer, "SP %.1fF|Br %.1fF|Ch%.1fF|Out%.1fF|H%d|C%d\r\n",
+        sprintf(buffer, "SP %.1fF|Br %.1fF|Ch %.1fF|OP %.1fF|Ht %d|Cl %d\r\n",
                       *setPoint,
                       beerF,
                       chamberF,

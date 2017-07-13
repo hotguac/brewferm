@@ -21,6 +21,7 @@
 #include "application.h"
 #include "spark_wiring_wifi.h"
 #include "stdarg.h"
+#include "math.h"
 
 PRODUCT_ID(PLATFORM_ID);
 PRODUCT_VERSION(3);
@@ -37,6 +38,8 @@ STARTUP(System.enable(SYSTEM_FLAG_WIFITESTER_OVER_SERIAL1));
 #endif
 
 int ledPin = D7;
+int greenPin = D0;
+int redPin = D1;
 
 int def_delay;
 
@@ -57,9 +60,13 @@ COMMS myComms(&Setpoint);
 void setup()
 {
     //Setup the Tinker application here
-
+    pinMode(redPin, OUTPUT);
+    pinMode(greenPin, OUTPUT);
     pinMode(ledPin, OUTPUT);
+
     digitalWrite(ledPin, HIGH);
+    digitalWrite(redPin, HIGH);
+    digitalWrite(greenPin, HIGH);
 
     System.disableUpdates();
     //WiFi.clearCredentials();
@@ -104,19 +111,31 @@ void setup()
 void loop()
 {
     //This will run in a loop
-    digitalWrite(ledPin, HIGH);
     mySensors.refresh();
 
     Input = mySensors.GetTempF(SENSORS::BEER);
     myPID.Compute();
 
     myRelays.controlTemp(mySensors.GetTempF(SENSORS::CHAMBER), Output);
+    digitalWrite(ledPin, HIGH);
 
     myComms.sendStatus(mySensors, myRelays, Output);
     if (myComms.setPointAvailable()) {
       Setpoint = myComms.getSetPoint();
     }
 
+    double diff = fabs(Input - Setpoint);
+
+    if (diff < 0.5) {
+      digitalWrite(greenPin, HIGH);
+      digitalWrite(redPin, LOW);
+    } else if (diff < 1.0) {
+      digitalWrite(greenPin, HIGH);
+      digitalWrite(redPin, HIGH);
+    } else {
+      digitalWrite(greenPin, LOW);
+      digitalWrite(redPin, HIGH);
+    }
+
     digitalWrite(ledPin, LOW);
-    delay(250);
 }
