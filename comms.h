@@ -15,7 +15,7 @@ class COMMS
     void init(void);
     int setPointAvailable();
     double getSetPoint();
-
+    void changeSetPoint();
   private:
     time_t ts_lastSend;
     double last_beerF;

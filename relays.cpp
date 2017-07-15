@@ -21,69 +21,54 @@ RELAYS::RELAYS(void) {
 
   heatOFF();
   coolOFF();
+  digitalWrite(relayCoolPin, OFF);
+  digitalWrite(relayHeatPin, LOW);
 }
 
 void RELAYS::heatON(void) {
   time_t now = Time.now();
 
   if (heatStatus != ON) {
-    if ((difftime(now, ts_heatOFF) > min_heat_off_on) &&
-        (difftime(now, ts_coolOFF) > min_cool_heat)) {
+    if (((now - ts_heatOFF) > min_heat_off_on) &&
+        ((now - ts_coolOFF) > min_cool_heat)) {
       digitalWrite(relayHeatPin, HIGH);
       heatStatus = ON;
       ts_heatON = now;
-      //Serial.println("Heat ON");
-    } else if (heatStatus != PENDING) {
+    } else {
       heatStatus = PENDING;
-      //Serial.println("Pending Heat ON");
+    }
+  }
+}
+
+void RELAYS::coolON(void) {
+  time_t now = Time.now();
+
+  if (coolStatus != ON) {
+    if (((now - ts_coolOFF) > min_cool_off_on) &&
+        ((now - ts_heatOFF) > min_heat_cool)) {
+      digitalWrite(relayCoolPin, ON);
+      coolStatus = ON;
+      ts_coolON = now;
+    } else {
+      coolStatus = PENDING;
     }
   }
 }
 
 void RELAYS::heatOFF(void) {
-  if (heatStatus != OFF) {
-    digitalWrite(relayHeatPin, LOW);
-    if (heatStatus == ON) {
-      ts_heatOFF = Time.now();
-    }
-
-    heatStatus = OFF;
-    //Serial.println("Heat OFF");
+  digitalWrite(relayHeatPin, LOW); // always turn off, just in case
+  if (heatStatus == ON) {
+    ts_heatOFF = Time.now(); // only set ts if it WAS on
   }
-}
-
-void RELAYS::coolON(void) {
-  if (coolStatus != ON) {
-    time_t now = Time.now();
-    if ((difftime(now, ts_heatOFF) > min_heat_cool) &&
-        (difftime(now, ts_coolOFF) > min_cool_off_on)) {
-      digitalWrite(relayCoolPin, ON);
-      coolStatus = ON;
-      ts_coolON = now;
-      //Serial.println("Cool ON");
-    } else if (coolStatus != PENDING){
-      coolStatus = PENDING;
-      //Serial.println("Pending Cool ON");
-    }
-  }
+  heatStatus = OFF;
 }
 
 void RELAYS::coolOFF(void) {
-  /*
-  Serial.printf("ts_heatOFF=%d\r\n",ts_heatOFF);
-  Serial.printf("ts_heatON=%d\r\n",ts_heatON);
-  Serial.printf("ts_coolOFF=%d\r\n",ts_coolOFF);
-  Serial.printf("ts_coolON=%d\r\n",ts_coolON);
-  */
-
-  if (coolStatus != OFF) {
-    digitalWrite(relayCoolPin, LOW);
-    if (coolStatus == ON) {
-      ts_coolOFF = Time.now();
-    }
-    coolStatus = OFF;
-    //Serial.println("Cool OFF");
+  digitalWrite(relayCoolPin, LOW); // always turn off, just in case
+  if (coolStatus == ON) {
+    ts_coolOFF = Time.now();  // only set ts if it WAS on
   }
+  coolStatus = OFF;
 }
 
 RELAYS::mode_t RELAYS::getHeatStatus() {

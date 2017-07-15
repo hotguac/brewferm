@@ -56,6 +56,33 @@ RELAYS myRelays;
 #include "comms.h"
 COMMS myComms(&Setpoint);
 
+struct MySP {
+  char name[9];
+  double value;
+};
+
+double retrieveSetPoint() {
+
+  delay(10*1000);
+  Serial.printf("Before EEPROM get\r\n");
+
+  MySP mySP;
+  EEPROM.get(0, mySP);
+
+  Serial.printf("EEPROM name=%s\r\n", mySP.name);
+  Serial.printf("EEPROM value=%f\r\n", mySP.value);
+
+  if (strcmp(mySP.name,"SetPoint") != 0) {
+    if ((mySP.value < 33.0) || (mySP.value > 80)) {
+      strcpy(mySP.name,"SetPoint");
+      mySP.value = 76;
+      EEPROM.put(0, mySP);
+    }
+  }
+
+  return mySP.value;
+}
+
 /* This function is called once at start up ----------------------------------*/
 void setup()
 {
@@ -68,6 +95,13 @@ void setup()
     digitalWrite(redPin, HIGH);
     digitalWrite(greenPin, HIGH);
 
+    // Init pid fields
+    Input = 76.0;
+    Setpoint = 76.0;
+
+    // Turn on pid
+    myPID.SetMode(PID::AUTOMATIC);
+    myPID.SetOutputLimits(64.0,84.0);
     System.disableUpdates();
     //WiFi.clearCredentials();
     //WiFi.setCredentials(SSID, PASSWORD, WPA2);
@@ -93,18 +127,12 @@ void setup()
         Particle.disconnect();
         myComms.init();
         delay(def_delay);
-} else {
+    } else {
         def_delay = 5 * 1000;
         Serial.println("WiFi not connected");
     }
 
-    // Init pid fields
-    Input = 76.0;
-    Setpoint = 76.0;
-
-    // Turn on pid
-    myPID.SetMode(PID::AUTOMATIC);
-    myPID.SetOutputLimits(64.0,84.0);
+    Setpoint = retrieveSetPoint();
 }
 
 /* This function loops forever --------------------------------------------*/

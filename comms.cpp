@@ -78,6 +78,21 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
       }
 }
 
+struct MySP {
+  char name[9];
+  double value;
+};
+
+void COMMS::changeSetPoint() {
+  MySP mySP;
+
+  if ((*setPoint > 32.9) && (*setPoint < 80)) {
+      strcpy(mySP.name,"SetPoint");
+      mySP.value = *setPoint;
+      EEPROM.put(0, mySP);
+    }
+}
+
 int COMMS::setPointAvailable() {
   int available = 0;
   float temp;
@@ -87,18 +102,9 @@ int COMMS::setPointAvailable() {
     int count = Udp.read(buffer, BUF_SIZE);
     buffer[count] = ' '; // terminate the received string
     buffer[count+1] = 0;
-    /*count = sscanf(buffer, "%f ", &temp);
-    if (count == 1) {
-      Serial.printf("Received UDP %f", temp);
-      *setPoint = temp;
-      available = 1;
-    } else {
-      Serial.printf("Received UDP with count %d string %s\r\n",
-                    count, buffer);
 
-    }
-    */
     *setPoint = atof(buffer);
+    changeSetPoint();
   }
   return available;
 }
