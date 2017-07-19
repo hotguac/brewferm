@@ -25,9 +25,9 @@ COMMS::COMMS(double *sp) {
 void COMMS::init(void) {
   Udp.begin(localPort);
   if (Udp.setBuffer(BUF_SIZE)) {
-    Serial.println("Udp buffer set");
+    //Serial.println("Udp buffer set");
   } else {
-    Serial.println("Udp buffer set failed");
+    //Serial.println("Udp buffer set failed");
   }
 }
 
@@ -70,10 +70,10 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
                                             remoteAddress,
                                             remotePort);
           if (len == now.length()) {
-            Serial.printf("%s", message);
+            //Serial.printf("%s", message);
           }
         } else {
-          Serial.printf("not sent = %s", message);
+          //Serial.printf("not sent = %s", message);
         } // WiFi.ready()
       }
 }

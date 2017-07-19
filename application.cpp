@@ -111,15 +111,15 @@ void setup()
     WiFi.connect(WIFI_CONNECT_SKIP_LISTEN);
     delay(5 * 1000);
 
-    Serial.begin(9600);
-    while(!Serial.available()) Particle.process();
+    //Serial.begin(9600);
+    //while(!Serial.available()) Particle.process();
 
     if (WiFi.ready()) {
         def_delay = 500;
 
-        Serial.print("WiFi is ready using ");
-        Serial.println(WiFi.SSID());
-        Serial.println(WiFi.localIP());
+        //Serial.print("WiFi is ready using ");
+        //Serial.println(WiFi.SSID());
+        //Serial.println(WiFi.localIP());
         Particle.connect();
         delay(def_delay);
         Particle.syncTime();
@@ -129,7 +129,7 @@ void setup()
         delay(def_delay);
     } else {
         def_delay = 5 * 1000;
-        Serial.println("WiFi not connected");
+        //Serial.println("WiFi not connected");
     }
 
     Setpoint = retrieveSetPoint();
