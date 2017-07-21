@@ -11,7 +11,7 @@ try:
     #c.execute('''DROP TABLE readings''')
     c.execute('''CREATE TABLE readings
              (ts date, beer real, setpoint real,
-             chamber real, output real, heat integer, cool integer)''')
+             chamber real, output real, adjusted real, heat integer, cool integer)''')
     conn.commit()
 except: # catch all errors
     print >>sys.stderr, 'table already exists'
@@ -33,24 +33,25 @@ while True:
     if (address == ('192.168.0.18', 8888)):
         #print >>sys.stderr, 'received %s bytes from %s' % (len(data), address)
         #print >>sys.stderr, data
-        #print >>sys.stderr, '12345678901234567890123456789012345678901234567890123456789012345678901234567890'
+        #print >>sys.stderr, '012345678901234567890123456789012345678901234567890123456789012345678901234567890'
         ts = data[:20]
         sp = data[24:28]
         beer = data[33:37]
         chamber = data[42:46]
         output = data[51:55]
-        heat = data[60:61]
-        cool = data[65:66]
+        adjust = data[60:64]
+        heat = data[69:70]
+        cool = data[74:75]
 
-        parms = (ts, sp, beer, chamber, output, heat, cool)
+        parms = (ts, sp, beer, chamber, output, adjust, heat, cool)
 
-        print >>sys.stderr, 'TS %s  SP %s  Beer %s  Ch %s  Out %s  Ht %s  Cl %s' % (ts,sp,beer,chamber,output,heat,cool)
+        print >>sys.stderr, 'TS %s  SP %s  Beer %s  Ch %s  Out %s  Adj %s  Ht %s  Cl %s' % (ts,sp,beer,chamber,output,adjust, heat,cool)
         #print >>sys.stderr, 'set point %s beer %s' % (sp,beer)
         #print >>sys.stderr, 'chamber %s output %s' % (chamber, output)
         #print >>sys.stderr, 'heat %s cool %s' % (heat, cool)
 
         try:
-            c.execute('INSERT INTO readings VALUES (?, ?, ?, ?, ?, ?, ?)', parms)
+            c.execute('INSERT INTO readings VALUES (?, ?, ?, ?, ?, ?, ?, ?)', parms)
             conn.commit()
         except Exception as e:
             print >>sys.stderr, 'insert failed %s' % (e,)

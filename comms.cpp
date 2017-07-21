@@ -5,7 +5,8 @@
 
 #define BUF_SIZE 2048
 
-IPAddress remoteAddress(192,168,0,11);  // laptop
+IPAddress remoteAddress1(192,168,0,11);  // laptop
+IPAddress remoteAddress2(192,168,0,20);  // server
 int remotePort = 7777;
 
 int localPort = 8888;
@@ -31,10 +32,16 @@ void COMMS::init(void) {
   }
 }
 
-void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
+void COMMS::sendStatus(SENSORS mySensors,
+                       RELAYS myRelays,
+                       double Output,
+                       double adj_Output) {
+
   time_t current_time  = Time.now();
+
   double beerF = mySensors.GetTempF(SENSORS::BEER);
   double chamberF = mySensors.GetTempF(SENSORS::CHAMBER);
+
   RELAYS::mode_t heatStatus = myRelays.getHeatStatus();
   RELAYS::mode_t coolStatus = myRelays.getCoolStatus();
 
@@ -53,11 +60,12 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
         std::string now(Time.format(current_time, TIME_FORMAT_ISO8601_FULL));
         now.append("|");
 
-        sprintf(buffer, "SP %.1fF|Br %.1fF|Ch %.1fF|OP %.1fF|Ht %d|Cl %d\r\n",
+        sprintf(buffer, "SP %.1fF|Br %.1fF|Ch %.1fF|OP %.1fF|AO %.1fF|Ht %d|Cl %d\r\n",
                       *setPoint,
                       beerF,
                       chamberF,
                       Output,
+                      adj_Output,
                       heatStatus,
                       coolStatus);
 
@@ -67,7 +75,11 @@ void COMMS::sendStatus(SENSORS mySensors, RELAYS myRelays, double Output) {
         if (WiFi.ready()) {
           unsigned int len = Udp.sendPacket(message,
                                             now.length(),
-                                            remoteAddress,
+                                            remoteAddress1,
+                                            remotePort);
+          len = Udp.sendPacket(message,
+                                            now.length(),
+                                            remoteAddress2,
                                             remotePort);
           if (len == now.length()) {
             //Serial.printf("%s", message);

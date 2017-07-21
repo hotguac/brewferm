@@ -29,9 +29,9 @@ void SENSORS::refresh(void) {
         addr[4], addr[5], addr[6], addr[7]);
 
       if (strcmp(types[BEER],buffer) == 0) {
-        beerF = sensor.fahrenheit();
+        beerF = sensor.fahrenheit() + beerF_calibrate;
       } else if (strcmp(types[CHAMBER],buffer) == 0) {
-        chamberF = sensor.fahrenheit();
+        chamberF = sensor.fahrenheit() + chamberF_calibrate;
       } else if (strcmp(types[AMBIENT],buffer) == 0) {
         ambientF = sensor.fahrenheit();
       }

@@ -18,9 +18,7 @@ class RELAYS
     void coolON(void);
     void coolOFF(void);
 
-    void controlTemp(double setp,
-                    double beer,
-                    double current,
+    void controlTemp(double current,
                     double target);
 
     mode_t getHeatStatus();
