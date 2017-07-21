@@ -95,13 +95,18 @@ void COMMS::changeSetPoint() {
 
 int COMMS::setPointAvailable() {
   int available = 0;
-  float temp;
+  //float temp;
 
   Udp.parsePacket();
   if (Udp.available()) {
     int count = Udp.read(buffer, BUF_SIZE);
     buffer[count] = ' '; // terminate the received string
     buffer[count+1] = 0;
+
+    // this is a kludge for now
+    if (buffer[0] == 'd') {
+      System.dfu(); // look for dfu or reset
+    }
 
     *setPoint = atof(buffer);
     changeSetPoint();

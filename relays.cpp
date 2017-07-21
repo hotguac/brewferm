@@ -64,11 +64,15 @@ void RELAYS::heatOFF(void) {
 }
 
 void RELAYS::coolOFF(void) {
-  digitalWrite(relayCoolPin, LOW); // always turn off, just in case
+  time_t now = Time.now();
+
   if (coolStatus == ON) {
-    ts_coolOFF = Time.now();  // only set ts if it WAS on
+    if ((now - ts_coolON) > min_cool_time) {
+      ts_coolOFF = now;
+      digitalWrite(relayCoolPin, LOW);
+      coolStatus = OFF;
+    }
   }
-  coolStatus = OFF;
 }
 
 RELAYS::mode_t RELAYS::getHeatStatus() {
@@ -79,14 +83,33 @@ RELAYS::mode_t RELAYS::getCoolStatus() {
   return coolStatus;
 }
 
-void RELAYS::controlTemp(double current, double target) {
+void RELAYS::controlTemp(double setp, double beer,
+                        double current, double target) {
   // If the chamber is more than half a degree warmer than
   // the PID output target then turn on cooling, if more than
   // half degree cool turn on heat
-  if (current - target > 1.5) {
+  double beer_diff = setp - beer;
+
+  if (setp > beer) {
+    if ((beer_diff < 5.0) &&
+        (target > beer + 10)) {
+          target = beer + 10;
+    }
+    if ((beer_diff < 2.0) &&
+        (target > beer + 5)) {
+          target = beer + 5;
+    }
+  } else {
+    if ((beer_diff < -5.0) &&
+        (target < beer - 20)) {
+          target = beer - 20;
+        }
+  }
+
+  if (current - target > 0.5) {
     coolON();
     heatOFF();
-  } else if (current - target < 1.5) {
+  } else if (current - target < -0.5) {
     heatON();
     coolOFF();
   } else {

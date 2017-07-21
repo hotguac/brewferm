@@ -44,10 +44,10 @@ while True:
 
         parms = (ts, sp, beer, chamber, output, heat, cool)
 
-        print >>sys.stderr, 'timestamp %s' % (ts,)
-        print >>sys.stderr, 'set point %s beer %s' % (sp,beer)
-        print >>sys.stderr, 'chamber %s output %s' % (chamber, output)
-        print >>sys.stderr, 'heat %s cool %s' % (heat, cool)
+        print >>sys.stderr, 'TS %s  SP %s  Beer %s  Ch %s  Out %s  Ht %s  Cl %s' % (ts,sp,beer,chamber,output,heat,cool)
+        #print >>sys.stderr, 'set point %s beer %s' % (sp,beer)
+        #print >>sys.stderr, 'chamber %s output %s' % (chamber, output)
+        #print >>sys.stderr, 'heat %s cool %s' % (heat, cool)
 
         try:
             c.execute('INSERT INTO readings VALUES (?, ?, ?, ?, ?, ?, ?)', parms)
@@ -55,4 +55,4 @@ while True:
         except Exception as e:
             print >>sys.stderr, 'insert failed %s' % (e,)
 
-        print >>sys.stderr, ''
+        #print >>sys.stderr, ''

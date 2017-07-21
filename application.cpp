@@ -48,7 +48,8 @@ SENSORS mySensors;
 
 #include "pid.h"
 double Setpoint, Input, Output;
-PID myPID(&Input, &Output, &Setpoint, 3, 5, 1, PID::DIRECT);
+// was 3, 5, 1
+PID myPID(&Input, &Output, &Setpoint, 5, 2, 1, PID::DIRECT);
 
 #include "relays.h"
 RELAYS myRelays;
@@ -101,7 +102,7 @@ void setup()
 
     // Turn on pid
     myPID.SetMode(PID::AUTOMATIC);
-    myPID.SetOutputLimits(64.0,84.0);
+    myPID.SetOutputLimits(33.0,80.0);
     System.disableUpdates();
     //WiFi.clearCredentials();
     //WiFi.setCredentials(SSID, PASSWORD, WPA2);
@@ -144,7 +145,9 @@ void loop()
     Input = mySensors.GetTempF(SENSORS::BEER);
     myPID.Compute();
 
-    myRelays.controlTemp(mySensors.GetTempF(SENSORS::CHAMBER), Output);
+    myRelays.controlTemp(Setpoint, mySensors.GetTempF(SENSORS::BEER),
+                        mySensors.GetTempF(SENSORS::CHAMBER),
+                        Output);
     digitalWrite(ledPin, HIGH);
 
     myComms.sendStatus(mySensors, myRelays, Output);
