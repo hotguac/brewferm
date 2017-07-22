@@ -74,6 +74,11 @@ void RELAYS::coolOFF(void) {
       coolStatus = OFF;
     }
   }
+
+  if (coolStatus == PENDING) {
+    digitalWrite(relayCoolPin, LOW);
+    coolStatus = OFF;  
+  }
 }
 
 RELAYS::mode_t RELAYS::getHeatStatus() {

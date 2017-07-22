@@ -65,18 +65,18 @@ struct MySP {
 double retrieveSetPoint() {
 
   delay(10*1000);
-  Serial.printf("Before EEPROM get\r\n");
+  //Serial.printf("Before EEPROM get\r\n");
 
   MySP mySP;
   EEPROM.get(0, mySP);
 
-  Serial.printf("EEPROM name=%s\r\n", mySP.name);
-  Serial.printf("EEPROM value=%f\r\n", mySP.value);
+  //Serial.printf("EEPROM name=%s\r\n", mySP.name);
+  //Serial.printf("EEPROM value=%f\r\n", mySP.value);
 
   if (strcmp(mySP.name,"SetPoint") != 0) {
     if ((mySP.value < 33.0) || (mySP.value > 80)) {
       strcpy(mySP.name,"SetPoint");
-      mySP.value = 76;
+      mySP.value = 74;
       EEPROM.put(0, mySP);
     }
   }
@@ -98,11 +98,17 @@ void setup()
 
     // Init pid fields
     Input = 76.0;
-    Setpoint = 76.0;
+    Setpoint = 74.0;
+    Setpoint = retrieveSetPoint();
 
     // Turn on pid
     myPID.SetMode(PID::AUTOMATIC);
-    myPID.SetOutputLimits(33.0,80.0);
+    if (Setpoint > 60) {
+      myPID.SetOutputLimits(Setpoint - 20,Setpoint + 12);
+    } else {
+      myPID.SetOutputLimits(33.0,80.0);
+    }
+
     System.disableUpdates();
     //WiFi.clearCredentials();
     //WiFi.setCredentials(SSID, PASSWORD, WPA2);
@@ -133,7 +139,6 @@ void setup()
         //Serial.println("WiFi not connected");
     }
 
-    Setpoint = retrieveSetPoint();
 }
 
 double getAdjusted(double setp,
@@ -165,7 +170,7 @@ double getAdjusted(double setp,
     target = Output;
   }
 
-  return target;
+  return (target + Output) / 2.0;
 }
 
 /* This function loops forever --------------------------------------------*/
@@ -177,10 +182,10 @@ void loop()
     Input = mySensors.GetTempF(SENSORS::BEER);
     myPID.Compute();
 
-    double beer_temp = mySensors.GetTempF(SENSORS::BEER);
+    //double beer_temp = mySensors.GetTempF(SENSORS::BEER);
     double chamber_temp = mySensors.GetTempF(SENSORS::CHAMBER);
-    double adj_Output = getAdjusted(Setpoint, beer_temp, Output);
-    myRelays.controlTemp(beer_temp,adj_Output);
+    double adj_Output = getAdjusted(Setpoint, Input, Output);
+    myRelays.controlTemp(chamber_temp, adj_Output);
     digitalWrite(ledPin, HIGH);
 
     myComms.sendStatus(mySensors, myRelays, Output, adj_Output);

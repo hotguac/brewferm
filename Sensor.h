@@ -39,8 +39,8 @@ class SENSORS
                             "2874AD7F08000092",
                             "0000000000000000"};
 
-    const double beerF_calibrate = -2.7;
-    const double chamberF_calibrate = -2.2;
+    const double beerF_calibrate = -1.9;
+    const double chamberF_calibrate = -1.5;
 
     //commonly used functions **************************************************************************
     SENSORS(void);
