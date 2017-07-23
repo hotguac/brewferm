@@ -50,7 +50,8 @@ SENSORS mySensors;
 double Setpoint, Input, Output;
 // was 3, 5, 1
 // then 5, 2, 1
-PID myPID(&Input, &Output, &Setpoint, 5, 1.8, 1.5, PID::DIRECT);
+// then 5, 1.8, 1.5
+PID myPID(&Input, &Output, &Setpoint, 4.5, 1.85, 1.7, PID::DIRECT);
 
 #include "relays.h"
 RELAYS myRelays;
