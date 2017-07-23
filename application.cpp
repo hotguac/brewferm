@@ -49,7 +49,8 @@ SENSORS mySensors;
 #include "pid.h"
 double Setpoint, Input, Output;
 // was 3, 5, 1
-PID myPID(&Input, &Output, &Setpoint, 5, 2, 1, PID::DIRECT);
+// then 5, 2, 1
+PID myPID(&Input, &Output, &Setpoint, 5, 1.8, 1.5, PID::DIRECT);
 
 #include "relays.h"
 RELAYS myRelays;
@@ -141,38 +142,6 @@ void setup()
 
 }
 
-double getAdjusted(double setp,
-                   double beer,
-                   double Output)
-{
-  double target = Output;
-  double beer_setp = beer - setp; // positive = too warm
-
-  if (beer_setp > 1.5) { // beer too warm
-    target = Output;
-  } else if (beer_setp > 0.5) {
-      if (Output < (beer - 20.0)) {
-        target = beer - 20.0;
-      }
-  } else if (beer_setp > 0.0) {
-    if (Output < (beer - 15.0)) {
-      target = beer - 15.0;
-    }
-  } else if (beer_setp > -0.5) { // beer to cold
-    if (Output > (beer + 5.0)) {
-      target = beer + 5.0;
-    }
-  } else if (beer_setp > -1.5) {
-    if (Output > (beer + 10.0)) {
-      target = beer + 10.0;
-    }
-  } else {
-    target = Output;
-  }
-
-  return (target + Output) / 2.0;
-}
-
 /* This function loops forever --------------------------------------------*/
 void loop()
 {
@@ -184,11 +153,11 @@ void loop()
 
     //double beer_temp = mySensors.GetTempF(SENSORS::BEER);
     double chamber_temp = mySensors.GetTempF(SENSORS::CHAMBER);
-    double adj_Output = getAdjusted(Setpoint, Input, Output);
-    myRelays.controlTemp(chamber_temp, adj_Output);
+
+    myRelays.controlTemp(chamber_temp, Output);
     digitalWrite(ledPin, HIGH);
 
-    myComms.sendStatus(mySensors, myRelays, Output, adj_Output);
+    myComms.sendStatus(mySensors, myRelays, Output, Output);
     if (myComms.setPointAvailable()) {
       Setpoint = myComms.getSetPoint();
     }

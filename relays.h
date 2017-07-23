@@ -32,7 +32,7 @@ class RELAYS
     double min_cool_heat   = 30;  // seconds
     double min_cool_off_on = 360; // seconds
     double min_heat_cool   = 30; // seconds
-    double min_cool_time   = 180; // seconds
+    double min_cool_time   = 90; // seconds
 
 	  //unsigned long heatOnTime;
     mode_t heatStatus;
