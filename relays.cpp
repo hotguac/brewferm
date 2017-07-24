@@ -46,7 +46,8 @@ void RELAYS::coolON(void) {
 
   if (coolStatus != ON) {
     if (((now - ts_coolOFF) > min_cool_off_on) &&
-        ((now - ts_heatOFF) > min_heat_cool)) {
+        ((now - ts_heatOFF) > min_heat_cool) &&
+        ((now - ts_heatON) > min_heat_time)) {
       digitalWrite(relayCoolPin, ON);
       coolStatus = ON;
       ts_coolON = now;
@@ -57,11 +58,20 @@ void RELAYS::coolON(void) {
 }
 
 void RELAYS::heatOFF(void) {
-  digitalWrite(relayHeatPin, LOW); // always turn off, just in case
+  time_t now = Time.now();
+
   if (heatStatus == ON) {
-    ts_heatOFF = Time.now(); // only set ts if it WAS on
+    if ((now - ts_heatON) > min_heat_time) {
+      digitalWrite(relayHeatPin, LOW); // always turn off, just in case
+      ts_heatOFF = now; // only set ts if it WAS on
+      heatStatus = OFF;
+    }
   }
-  heatStatus = OFF;
+
+  if (heatStatus == PENDING) {
+    digitalWrite(relayHeatPin, LOW); // always turn off, just in case
+    heatStatus = OFF;
+  }
 }
 
 void RELAYS::coolOFF(void) {
@@ -77,7 +87,7 @@ void RELAYS::coolOFF(void) {
 
   if (coolStatus == PENDING) {
     digitalWrite(relayCoolPin, LOW);
-    coolStatus = OFF;  
+    coolStatus = OFF;
   }
 }
 

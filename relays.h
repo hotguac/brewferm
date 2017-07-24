@@ -28,11 +28,16 @@ class RELAYS
     int relayCoolPin = D4;
     int relayHeatPin = D5;
 
-    double min_heat_off_on = 30;  // seconds
-    double min_cool_heat   = 30;  // seconds
+    // these are in seconds
+    // run at lease this long
+    double min_heat_cool   = 60;
+    double min_cool_heat   = 60;
+
     double min_cool_off_on = 360; // seconds
-    double min_heat_cool   = 30; // seconds
+    double min_heat_off_on = 60;  // seconds
+
     double min_cool_time   = 90; // seconds
+    double min_heat_time   = 90; // seconds
 
 	  //unsigned long heatOnTime;
     mode_t heatStatus;

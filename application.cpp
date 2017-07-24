@@ -46,12 +46,16 @@ int def_delay;
 #include "Sensor.h"
 SENSORS mySensors;
 
+double beer_temp;
+double chamber_temp;
+
 #include "pid.h"
 double Setpoint, Input, Output;
 // was 3, 5, 1
 // then 5, 2, 1
 // then 5, 1.8, 1.5
-PID myPID(&Input, &Output, &Setpoint, 4.5, 1.85, 1.7, PID::DIRECT);
+//then 4.5 1.85 1.7
+PID myPID(&Input, &Output, &Setpoint, 4.5, 1.85, 1.9, PID::DIRECT);
 
 #include "relays.h"
 RELAYS myRelays;
@@ -106,9 +110,9 @@ void setup()
     // Turn on pid
     myPID.SetMode(PID::AUTOMATIC);
     if (Setpoint > 60) {
-      myPID.SetOutputLimits(Setpoint - 20,Setpoint + 12);
+      myPID.SetOutputLimits(Setpoint - 6,Setpoint + 4);
     } else {
-      myPID.SetOutputLimits(33.0,80.0);
+      myPID.SetOutputLimits(33.0,Setpoint + 8);
     }
 
     System.disableUpdates();
@@ -116,9 +120,9 @@ void setup()
     //WiFi.setCredentials(SSID, PASSWORD, WPA2);
     WiFi.on();
 
-    delay(5 * 1000);
+    delay(4 * 1000);
     WiFi.connect(WIFI_CONNECT_SKIP_LISTEN);
-    delay(5 * 1000);
+    delay(4 * 1000);
 
     //Serial.begin(9600);
     //while(!Serial.available()) Particle.process();
@@ -143,17 +147,36 @@ void setup()
 
 }
 
+// The intent of this routine is to make the PID routine
+// react quicker to colder inputs that warmer
+// so the chamber doesn't cool down too far resulting in
+// beer temp overshoot on the cold side
+double adjustInput()
+{
+  double offset = 0.0;
+  double diff = Setpoint - beer_temp;
+
+  if ((diff > 0.05) && (chamber_temp < beer_temp)) {
+    // beer is colder than set point and
+    // chamber is already colder than beer
+    offset = (diff - 0.05) * 0.3;
+  }
+
+  return beer_temp - offset;
+}
+
 /* This function loops forever --------------------------------------------*/
 void loop()
 {
     //This will run in a loop
     mySensors.refresh();
 
-    Input = mySensors.GetTempF(SENSORS::BEER);
+    chamber_temp = mySensors.GetTempF(SENSORS::CHAMBER);
+    beer_temp = mySensors.GetTempF(SENSORS::BEER);
+    //Input = mySensors.GetTempF(SENSORS::BEER);
+    Input = adjustInput();
     myPID.Compute();
 
-    //double beer_temp = mySensors.GetTempF(SENSORS::BEER);
-    double chamber_temp = mySensors.GetTempF(SENSORS::CHAMBER);
 
     myRelays.controlTemp(chamber_temp, Output);
     digitalWrite(ledPin, HIGH);
