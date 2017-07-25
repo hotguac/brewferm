@@ -15,9 +15,10 @@ class COMMS
                     RELAYS myRelays,
                     double Output,
                     double adj_Output);
-                    
+
     void init(void);
     int setPointAvailable();
+    int processIncomingMessages();
     double getSetPoint();
     void changeSetPoint();
   private:

@@ -95,17 +95,7 @@ struct MySP {
   double value;
 };
 
-void COMMS::changeSetPoint() {
-  MySP mySP;
-
-  if ((*setPoint > 32.9) && (*setPoint < 80)) {
-      strcpy(mySP.name,"SetPoint");
-      mySP.value = *setPoint;
-      EEPROM.put(0, mySP);
-    }
-}
-
-int COMMS::setPointAvailable() {
+int COMMS::processIncomingMessages() {
   int available = 0;
   //float temp;
 
@@ -121,10 +111,14 @@ int COMMS::setPointAvailable() {
     }
 
     *setPoint = atof(buffer);
-    changeSetPoint();
+    setPointReceived = 1;
   }
 
   return available;
+}
+
+int COMMS::setPointAvailable() {
+  return setPointReceived;
 }
 
 double COMMS::getSetPoint() {
