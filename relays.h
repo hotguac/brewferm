@@ -30,14 +30,14 @@ class RELAYS
 
     // these are in seconds
     // run at lease this long
-    double min_heat_cool   = 60;
-    double min_cool_heat   = 60;
+    double min_heat_cool   = 120;
+    double min_cool_heat   = 120;
 
     double min_cool_off_on = 360; // seconds
-    double min_heat_off_on = 60;  // seconds
+    double min_heat_off_on = 90;  // seconds
 
     double min_cool_time   = 90; // seconds
-    double min_heat_time   = 90; // seconds
+    double min_heat_time   = 60; // seconds
 
 	  //unsigned long heatOnTime;
     mode_t heatStatus;

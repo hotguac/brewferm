@@ -123,6 +123,7 @@ int COMMS::setPointAvailable() {
     *setPoint = atof(buffer);
     changeSetPoint();
   }
+
   return available;
 }
 

@@ -104,10 +104,10 @@ void RELAYS::controlTemp(double current, double target) {
   // the PID output target then turn on cooling, if more than
   // half degree cool turn on heat
 
-  if (current - target > 0.5) {
+  if (current - target > 1.25) {
     coolON();
     heatOFF();
-  } else if (current - target < -0.5) {
+  } else if (current - target < -1.25) {
     heatON();
     coolOFF();
   } else {
