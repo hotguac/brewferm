@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+
 import socket
 import sys
 
-UDP_IP = "192.168.0.18"
+# The device in question's IP address
+UDP_IP = "192.168.0.12"
 UDP_PORT = 8888
-MESSAGE = sys.argv[1]
+MESSAGE = "dfu";
 
 sock = socket.socket(socket.AF_INET,
                   socket.SOCK_DGRAM)

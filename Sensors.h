@@ -17,51 +17,67 @@
   ******************************************************************************
  */
 
-#ifndef RELAYS_H_
-#define RELAYS_H_
+/* Sensor pin outs
 
-#include "application.h"
+viewed from front of sensor RJ14 plug with tab UP
 
-#include "brewferm.h"
+pin 1 - no connection
+pin 2 - Red - 5V
+pin 3 - Black - Ground
+pin 4 - White - data
 
-class RELAYS {
+viewed from front of wall RJ25 wall jack with tab DOWN
+
+pin 1 -
+pin 2 - black
+pin 3 - red
+pin 4 - green
+pin 5 - yellow
+pin 6 -
+
+connection mapping from sensor plug to jack
+
+Red 5V -> Red
+Black Ground -> green
+White Data -> yellow
+
+*/
+
+#ifndef SENSORS_H_
+#define SENSORS_H_
+
+#include "libs/DS18.h"
+
+class SENSORS {
  public:
-  // Parameter types for some of the functions below
+    // Parameter types for some of the functions below
+    enum sensor_use { BEER = 0, CHAMBER = 1, AMBIENT = 2 };
     const char *types[3] = {"2875857F08000063",
                             "2874AD7F08000092",
                             "0000000000000000"};
 
-    RELAYS(void);
-    void heatON(void);
-    void idle(void);
-    void coolON(void);
+    const double beerF_calibrate = -1.9;
+    const double chamberF_calibrate = -1.5;
 
-    mode_heat_cool getHeatCoolStatus();
+    SENSORS(void);
+    void refresh(void);
+
+
+    sensor_use GetMode(void);
+    void printDebugInfo(void);
+
+    void SetSampleTime(int);
+
+    double GetID(sensor_use);
+    double GetTempF(sensor_use);
 
  private:
-    int relayCoolPin = D4;
-    int relayHeatPin = D5;
+    void Initialize();
+    float beerF;
+    float chamberF;
+    float ambientF;
 
-    // these are in seconds
-    // run at least this long
 
-    double min_cool_off_on = MIN_COOL_OFF_ON;
-    
-    /*
-    double min_heat_cool   = 30;
-    double min_cool_heat   = 30;
-    double min_heat_off_on = 30;   // seconds
-
-    double min_cool_time   = 120;  // seconds
-    double min_heat_time   = 30;  // seconds
-    */
-
-    mode_heat_cool heat_cool_Status;
-
-    time_t ts_heatON;
-    time_t ts_heatOFF;
-    time_t ts_coolON;
-    time_t ts_coolOFF;
 };
 
-#endif
+#endif  // SENSORS_H_

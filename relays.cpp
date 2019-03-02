@@ -1,13 +1,26 @@
 /*
+ ******************************************************************************
+  Copyright (c) 2019 Joe Kokosa  All rights reserved.
 
-This module holds the logic to drive the cooling and heating of the
-fermentation chamber.
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation, either
+  version 3 of the License, or (at your option) any later version.
 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+  ******************************************************************************
 */
 
 #include "relays.h"
 #include "application.h"
 
+/*----------------------------------------------------------------------------*/
 RELAYS::RELAYS(void) {
   pinMode(relayCoolPin, OUTPUT);
   pinMode(relayHeatPin, OUTPUT);
@@ -17,102 +30,124 @@ RELAYS::RELAYS(void) {
   ts_heatOFF = Time.now();
   ts_heatON  = ts_heatOFF;
   ts_coolOFF = ts_heatOFF;
-  ts_coolON  = ts_heatOFF - (min_cool_time * 2);
+  ts_coolON  = ts_heatOFF;  // - (min_cool_time * 2);
 
-  heatOFF();
-  coolOFF();
-  digitalWrite(relayCoolPin, OFF);
+  idle();
+
+  heat_cool_Status = IDLE;
+
+  digitalWrite(relayCoolPin, LOW);
   digitalWrite(relayHeatPin, LOW);
 }
 
+/*----------------------------------------------------------------------------*/
 void RELAYS::heatON(void) {
   time_t now = Time.now();
 
-  if (heatStatus != ON) {
-    if (((now - ts_heatOFF) > min_heat_off_on) &&
-        ((now - ts_coolOFF) > min_cool_heat) &&
-        ((now - ts_coolON) > min_cool_time)) {
-      digitalWrite(relayHeatPin, HIGH);
-      heatStatus = ON;
-      ts_heatON = now;
+  if (heat_cool_Status == COOLING_ON) {
+    if ((now - ts_coolON) > MIN_COOL_TIME) {
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
+      digitalWrite(relayCoolPin, LOW);
+      ts_coolOFF = now;
+      heat_cool_Status = IDLE;
+    }
+  }
+
+  if (heat_cool_Status == IDLE) {
+    if (((now - ts_heatOFF) > MIN_HEAT_OFF_ON) &&
+        ((now - ts_coolOFF) > MIN_COOL_HEAT)) {
+          digitalWrite(relayCoolPin, LOW);
+          digitalWrite(relayHeatPin, HIGH);
+          heat_cool_Status = HEATER_ON;
+          ts_heatON = now;
     } else {
-      heatStatus = PENDING;
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
+      digitalWrite(relayCoolPin, LOW);  // since we're in an idle state
+    }
+  }
+
+  if (heat_cool_Status == HEATER_ON) {
+    if ((now - ts_heatON) > MAX_HEAT_TIME) {
+      digitalWrite(relayHeatPin, LOW);
+      digitalWrite(relayCoolPin, LOW);
+      heat_cool_Status = IDLE;
+      ts_heatOFF = now;
+    } else {  // these should already be set, but just in case
+      digitalWrite(relayCoolPin, LOW);
+      digitalWrite(relayHeatPin, HIGH);
     }
   }
 }
 
+/*----------------------------------------------------------------------------*/
 void RELAYS::coolON(void) {
   time_t now = Time.now();
 
-  if (coolStatus != ON) {
-    if (((now - ts_coolOFF) > min_cool_off_on) &&
-        ((now - ts_heatOFF) > min_heat_cool) &&
-        ((now - ts_heatON) > min_heat_time)) {
-      digitalWrite(relayCoolPin, ON);
-      coolStatus = ON;
-      ts_coolON = now;
-    } else {
-      coolStatus = PENDING;
-    }
-  }
-}
-
-void RELAYS::heatOFF(void) {
-  time_t now = Time.now();
-
-  if (heatStatus == ON) {
-    if ((now - ts_heatON) > min_heat_time) {
-      digitalWrite(relayHeatPin, LOW); // always turn off, just in case
-      ts_heatOFF = now; // only set ts if it WAS on
-      heatStatus = OFF;
-    }
-  }
-
-  if (heatStatus == PENDING) {
-    digitalWrite(relayHeatPin, LOW); // always turn off, just in case
-    heatStatus = OFF;
-  }
-}
-
-void RELAYS::coolOFF(void) {
-  time_t now = Time.now();
-
-  if (coolStatus == ON) {
-    if ((now - ts_coolON) > min_cool_time) {
-      ts_coolOFF = now;
+  if (heat_cool_Status == HEATER_ON) {
+    if ((now - ts_heatON) > MIN_HEAT_TIME) {
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
       digitalWrite(relayCoolPin, LOW);
-      coolStatus = OFF;
+      ts_heatOFF = now;
+      heat_cool_Status = IDLE;
     }
   }
 
-  if (coolStatus == PENDING) {
-    digitalWrite(relayCoolPin, LOW);
-    coolStatus = OFF;
+  if (heat_cool_Status == IDLE) {
+    if (((now - ts_coolOFF) > min_cool_off_on) &&
+        ((now - ts_heatOFF) > MIN_HEAT_COOL)) {
+          digitalWrite(relayHeatPin, LOW);
+          digitalWrite(relayCoolPin, HIGH);
+          heat_cool_Status = COOLING_ON;
+          ts_coolON = now;
+    } else {
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
+      digitalWrite(relayCoolPin, LOW);  // since we're in an idle state
+    }
+  }
+
+  if (heat_cool_Status == COOLING_ON) {
+    if ((now - ts_coolON) > MAX_COOL_TIME) {
+      digitalWrite(relayHeatPin, LOW);
+      digitalWrite(relayCoolPin, LOW);
+      heat_cool_Status = IDLE;
+      ts_coolOFF = now;
+    } else { // should be already set, but what the heck
+      digitalWrite(relayHeatPin, LOW);
+      digitalWrite(relayCoolPin, HIGH);
+    }
   }
 }
 
-RELAYS::mode_t RELAYS::getHeatStatus() {
-  return heatStatus;
-}
+/*----------------------------------------------------------------------------*/
+void RELAYS::idle(void) {
+  time_t now = Time.now();
 
-RELAYS::mode_t RELAYS::getCoolStatus() {
-  return coolStatus;
-}
-
-void RELAYS::controlTemp(double current, double target) {
-  // If the chamber is more than half a degree warmer than
-  // the PID output target then turn on cooling, if more than
-  // half degree cool turn on heat
-
-  if (current - target > 1.25) {
-    coolON();
-    heatOFF();
-  } else if (current - target < -1.25) {
-    heatON();
-    coolOFF();
-  } else {
-    heatOFF();
-    coolOFF();
+  if (heat_cool_Status == HEATER_ON) {
+    if ((now - ts_heatON) > MIN_HEAT_TIME) {
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
+      digitalWrite(relayCoolPin, LOW);
+      ts_heatOFF = now;
+      heat_cool_Status = IDLE;
+    }
   }
 
-}  // RELAYS::controlTemp
+  if (heat_cool_Status == IDLE) {
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
+      digitalWrite(relayCoolPin, LOW);  // since we're in an idle state
+  }
+
+  if (heat_cool_Status == COOLING_ON) {
+    if ((now - ts_coolON) > MIN_COOL_TIME) {
+      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
+      digitalWrite(relayCoolPin, LOW);
+      ts_coolOFF = now;
+      heat_cool_Status = IDLE;
+    }
+  }
+
+}
+
+/*----------------------------------------------------------------------------*/
+mode_heat_cool RELAYS::getHeatCoolStatus() {
+  return heat_cool_Status;
+}

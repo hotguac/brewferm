@@ -17,51 +17,28 @@
   ******************************************************************************
  */
 
-#ifndef RELAYS_H_
-#define RELAYS_H_
+#ifndef STORAGE_H_
+#define STORAGE_H_
 
+/* Includes ---- photon vendor defined ---------------------------------------*/
 #include "application.h"
+#include "spark_wiring_wifi.h"
 
 #include "brewferm.h"
 
-class RELAYS {
- public:
-  // Parameter types for some of the functions below
-    const char *types[3] = {"2875857F08000063",
-                            "2874AD7F08000092",
-                            "0000000000000000"};
-
-    RELAYS(void);
-    void heatON(void);
-    void idle(void);
-    void coolON(void);
-
-    mode_heat_cool getHeatCoolStatus();
-
- private:
-    int relayCoolPin = D4;
-    int relayHeatPin = D5;
-
-    // these are in seconds
-    // run at least this long
-
-    double min_cool_off_on = MIN_COOL_OFF_ON;
-    
-    /*
-    double min_heat_cool   = 30;
-    double min_cool_heat   = 30;
-    double min_heat_off_on = 30;   // seconds
-
-    double min_cool_time   = 120;  // seconds
-    double min_heat_time   = 30;  // seconds
-    */
-
-    mode_heat_cool heat_cool_Status;
-
-    time_t ts_heatON;
-    time_t ts_heatOFF;
-    time_t ts_coolON;
-    time_t ts_coolOFF;
+struct MySP {
+  char name[EEPROM_CHECK_SIZE];
+  double value;
 };
 
-#endif
+class STORAGE {
+ public:
+  // commonly used functions
+    void store_beer_temp_target(double sp);
+    double retrieve_beer_temp_target();
+ private:
+    MySP mySP;
+};
+
+
+#endif  // STORAGE_H_

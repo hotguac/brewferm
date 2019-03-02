@@ -17,35 +17,35 @@
   ******************************************************************************
  */
 
-#ifndef COMMS_H_
-#define COMMS_H_
+#include "storage.h"
 
-#include "application.h"
-#include "brewferm.h"
+// STORAGE::STORAGE(void) {
+// }
 
-class COMMS {
- public:
-  // Parameter types for some of the functions below
-  // commonly used functions
-    explicit COMMS(void);
-    void sendStatus(double set_point, double beerF,
-                    double ch_target, double chamberF,
-                    double chamber_pid_out,
-                    mode_heat_cool system_status,
-                    mode_heat_cool relay_status);
+void STORAGE::store_beer_temp_target(double sp) {
+  if ((sp > MIN_SP) && (sp < MAX_SP)) {
+      //snprintf(mySP.name, EEPROM_CHECK_SIZE, "beerPID_Setpoint");
+      strcpy("12345678\0",mySP.name);
+      //mySP.name = "12345678\0";
+      mySP.value = sp;
+      EEPROM.put(EEPROM_SP_ADDR, mySP);
+    }
+}
 
-    void init(void);
-    int setPointAvailable();
-    int processIncomingMessages();
-    double getSetPoint();
-    void changeSetPoint();
- private:
-    time_t ts_lastSend;
-    double last_beerF;
-    double last_chamberF;
-    mode_heat_cool last_relay_status;
-    int min_send_time;
-    void setFuture(char *buffer);
-};
+double STORAGE::retrieve_beer_temp_target() {
+  delay(10*1000);
+  // Serial.printf("Before EEPROM get\r\n");
 
-#endif  // COMMS_H_
+  EEPROM.get(EEPROM_SP_ADDR, mySP);
+
+  if (strcmp(mySP.name, "12345678\0") != 0) {
+    if ((mySP.value < MIN_SP) || (mySP.value > MAX_SP)) {
+      mySP.value = DEFAULT_SP;
+      store_beer_temp_target(mySP.value);
+    }
+  }
+
+// until i figure it beerPID_Output
+  // return 65.0;
+  return mySP.value;
+}
