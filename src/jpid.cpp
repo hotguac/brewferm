@@ -87,10 +87,12 @@ bool PID::Compute()
       // for BrewFerm, specifically that output is used for a
       // target chamber temperature and that it should be roughly
       // equal to the set point when the beer is at equilibrium
+      /*
       if (((lastError > 0.0) && (error < 0.0)) ||
           ((lastError < 0.0) && (error > 0.0))) {
          ITerm = (ITerm + *mySetpoint) / 2.0;
       }
+      */
 
       lastError = error;
 
@@ -196,6 +198,8 @@ void PID::SetOutputLimits(double Min, double Max)
          }
       }
 
+      ITerm = (outMax + outMin) / 2.0; // 1/23/20
+      /*
 	   if (ITerm > outMax) {
          ITerm = outMax;
       }
@@ -204,6 +208,7 @@ void PID::SetOutputLimits(double Min, double Max)
             ITerm = outMin;
          }
       }
+      */
    }
 }
 
@@ -242,6 +247,11 @@ void PID::Initialize()
    }
 }
 
+void PID::SynchITerm()
+{
+   ITerm = *mySetpoint;
+}
+
 /* SetControllerDirection(...)*************************************************
  * The PID will either be connected to a DIRECT acting process (+Output leads
  * to +Input) or a REVERSE acting process(+Output leads to -Input.)  we need to
@@ -277,6 +287,11 @@ double PID::GetKi()
 double PID::GetKd()
 {
    return  dispKd;
+}
+
+double PID::GetITerm()
+{
+   return ITerm;
 }
 
 int PID::GetMode()

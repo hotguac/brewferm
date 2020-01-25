@@ -66,6 +66,8 @@ double chamber_target_temp, chamber_temp_actual, chamber_pid_out;
 double percent_heat = 0.0, percent_cool = 0.0;
 double control_signal;
 
+double beerITerm, chamberITerm;
+
 double uptime = 0.0;
 double cooltime = 0.0;
 double heattime = 0.0;
@@ -127,14 +129,16 @@ void initBeerPID(void) {
 
     // Turn on pid
   beerTempPID.SetMode(PID::AUTOMATIC);
-  beerTempPID.SetSampleTime(BEER_SAMPLETIME);
+  beerTempPID.SetSampleTime(BEER_SAMPLETIME*1000);
 
   chamberTempPID.SetMode(PID::AUTOMATIC);
-  chamberTempPID.SetSampleTime(CHAMBER_SAMPLETIME);
+  chamberTempPID.SetSampleTime(CHAMBER_SAMPLETIME*1000);
 
   control_signal = 50;
 
   adjustChamberTempLimits(beer_temp_target);
+  beerTempPID.SynchITerm();
+  chamberTempPID.SynchITerm();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -152,6 +156,7 @@ void checkNetworking(void) {
   }
 
   OTA_enabled = System.updatesEnabled();
+
   if (!OTA_enabled) {
     System.enableUpdates();
   }
@@ -186,10 +191,10 @@ void get_current_temperatures() {
   // rate on the temp readings. Chamber changes quicker than beer, so
   // it gets a high alpha parameter.
 
-  chamber_temp_actual += 0.8 * (mySensors.GetTempF(SENSORS::CHAMBER) -
+  chamber_temp_actual += 0.9 * (mySensors.GetTempF(SENSORS::CHAMBER) -
                                   chamber_temp_actual);
 
-  beer_temp_actual += 0.8 * (mySensors.GetTempF(SENSORS::BEER) -
+  beer_temp_actual += 0.9 * (mySensors.GetTempF(SENSORS::BEER) -
                                beer_temp_actual);
 }
 
@@ -257,10 +262,10 @@ void run_calculations() {
   // the alpha parameter of y += alpha * (x-y); needs to stay close to
   // unity (1.0) to keep the lag time down
   beerTempPID.Compute();
-  chamber_target_temp += 0.6 * (beer_pid_out - chamber_target_temp);
+  chamber_target_temp += 0.9 * (beer_pid_out - chamber_target_temp);
 
   chamberTempPID.Compute();
-  control_signal += 0.6 * (chamber_pid_out - control_signal);
+  control_signal += 0.9 * (chamber_pid_out - control_signal);
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -416,6 +421,8 @@ void setup() {
     Particle.variable("Uptime", uptime);
     Particle.variable("HeatTime", heattime);
     Particle.variable("CoolTime", cooltime);
+    Particle.variable("BeerITerm", beerITerm);
+    Particle.variable("ChamberITerm", chamberITerm);
 
     Particle.function("setBeerTarget", setBeerTarget);
     Particle.function("setPauseState", setPause);
@@ -453,6 +460,8 @@ void loop() {
     if (!paused) {
       run_calculations();
       Particle.process();
+      beerITerm = beerTempPID.GetITerm();
+      chamberITerm = chamberTempPID.GetITerm();
     }
 
     control_HeatCool();
