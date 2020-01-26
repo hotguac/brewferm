@@ -56,6 +56,7 @@ time_t ts_lastSim;
 time_t ts_last_loop;
 time_t ts_next_loop;
 time_t ts_now;
+time_t ts_last_publish;
 
 double cool_limit, heat_limit;
 
@@ -191,10 +192,10 @@ void get_current_temperatures() {
   // rate on the temp readings. Chamber changes quicker than beer, so
   // it gets a high alpha parameter.
 
-  chamber_temp_actual += 0.9 * (mySensors.GetTempF(SENSORS::CHAMBER) -
+  chamber_temp_actual += 0.95 * (mySensors.GetTempF(SENSORS::CHAMBER) -
                                   chamber_temp_actual);
 
-  beer_temp_actual += 0.9 * (mySensors.GetTempF(SENSORS::BEER) -
+  beer_temp_actual += 0.95 * (mySensors.GetTempF(SENSORS::BEER) -
                                beer_temp_actual);
 }
 
@@ -262,10 +263,10 @@ void run_calculations() {
   // the alpha parameter of y += alpha * (x-y); needs to stay close to
   // unity (1.0) to keep the lag time down
   beerTempPID.Compute();
-  chamber_target_temp += 0.9 * (beer_pid_out - chamber_target_temp);
+  chamber_target_temp += 0.95 * (beer_pid_out - chamber_target_temp);
 
   chamberTempPID.Compute();
-  control_signal += 0.9 * (chamber_pid_out - control_signal);
+  control_signal += 0.95 * (chamber_pid_out - control_signal);
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -347,7 +348,9 @@ int setBeerTarget(String temp_target) {
 
     if (temp > 0.0) {
       beer_temp_target = temp;
+      beerTempPID.SynchITerm();
       adjustChamberTempLimits(beer_temp_target);
+
       myStorage.store_beer_temp_target(beer_temp_target);
     } else {
       result = -1;
@@ -381,7 +384,7 @@ int setPause(String pause) {
 #define MAX_DATA_SIZE 622
 void update_system_status() {
 
-    // get times in seconds to double so calc's work
+    // get times in seconds to calc work
     uptime = System.uptime();
     cooltime = myRelays.get_cool_runtime();
     heattime = myRelays.get_heat_runtime();
@@ -393,16 +396,17 @@ void update_system_status() {
     memset(buffer, 0, sizeof(buffer));
 
     snprintf(buffer, sizeof(buffer),
-      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|end",
+      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|BI:%.1f|CI:%.1f|end",
         beer_temp_target,
         beer_temp_actual,
         chamber_target_temp,
         chamber_temp_actual,
         chamber_pid_out,
         percent_heat,
-        percent_cool
+        percent_cool,
+        beerTempPID.GetITerm(),
+        chamberTempPID.GetITerm()
         );
-
 
     system_status.remove(0);
     system_status.concat("TA:");
@@ -411,6 +415,12 @@ void update_system_status() {
     system_status.concat(current_action);
     system_status.concat(buffer);
 
+    if ((Time.now() - ts_last_publish) > SEND_STATUS_INTERVAL) {
+      if (Particle.connected()) {
+        Particle.publish("SystemStatus", system_status, PRIVATE);
+        ts_last_publish = Time.now();
+      }
+    }
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -445,6 +455,7 @@ void setup() {
 
     ts_lastSim = Time.now();
     ts_last_loop = ts_lastSim - 200; // pretend we last looped 200 seconds ago
+    ts_last_publish = ts_last_loop;
 }
 
 /* ---------------------------------------------------------------------------*/

@@ -25,9 +25,10 @@
 
 // Controls how frequently the process loop runs
 // We slow it down because the temps don't change quickly
-#define MIN_LOOP_TIME 10 // seconds
+#define MIN_LOOP_TIME 8 // seconds
 #define BEER_SAMPLETIME 120 // Compute interval in seconds
-#define CHAMBER_SAMPLETIME 30 // Compute interval in seconds
+#define CHAMBER_SAMPLETIME 24 // Compute interval in seconds
+#define SEND_STATUS_INTERVAL 240 // in seconds
 
 // What pins are wired to what
 #define LED_PIN   D7
@@ -35,13 +36,13 @@
 #define RED_PIN   D1
 
 // The PID parameters
-#define BEER_P  0.3
+#define BEER_P  0.5 // 0.3
 #define BEER_I  0.02
-#define BEER_D  0.03
+#define BEER_D  3.0 // 0.3
 
 #define CHAMBER_P  3
 #define CHAMBER_I  0.2
-#define CHAMBER_D  0.125
+#define CHAMBER_D  1.25 // 0.125
 
 // Tempature control parameters
 // These work with the output of the chamber PID controller
@@ -52,20 +53,20 @@
 #define HEAT_LIMIT2  60
 #define HEAT_LIMIT1  96
 
-#define MIN_HEAT_COOL    360   // seconds between turning heat off and cool on
-#define MIN_COOL_HEAT    360   // seconds between turning cool off and heat on
+#define MIN_HEAT_COOL    240   // seconds between turning heat off and cool on
+#define MIN_COOL_HEAT    240   // seconds between turning cool off and heat on
 #define MIN_HEAT_OFF_ON  30    // seconds between turning heat off and heat on
 
-#define MIN_COOL_OFF_ON  420  // seconds between turning cool off and cool on
+#define MIN_COOL_OFF_ON  360  // seconds between turning cool off and cool on
                               // WARNING!!! this is a safety feature and shouldn't
                               // be less than 6 minutes (360 seconds) to keep from
                               // causing compressor damage; should only be
                               // changed if you know what you're doing.
 
-#define MIN_COOL_TIME     60  // minimum seconds between cool on and cool off
-#define MIN_HEAT_TIME     45  // minimum seconds between heat on and heat off
+#define MIN_COOL_TIME     30  // minimum seconds between cool on and cool off
+#define MIN_HEAT_TIME     15  // minimum seconds between heat on and heat off
 
-#define MAX_COOL_TIME    210  // seconds between cool on and cool off
+#define MAX_COOL_TIME    180  // seconds between cool on and cool off
 #define MAX_HEAT_TIME    360  // seconds between heat on and heat off
 
 // Other PID algorithm parameters

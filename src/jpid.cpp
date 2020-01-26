@@ -50,7 +50,6 @@ PID::PID(double* Input,
    lastTime = millis() - SampleTime;
 }
 
-
 /* Compute() **********************************************************************
  *     This, as they say, is where the magic happens.  this function should be called
  *   every time "void loop()" executes.  the function will decide for itself whether a new
@@ -83,17 +82,6 @@ bool PID::Compute()
          }
       }
 
-      // This next section if VERY dependent on the use case
-      // for BrewFerm, specifically that output is used for a
-      // target chamber temperature and that it should be roughly
-      // equal to the set point when the beer is at equilibrium
-      /*
-      if (((lastError > 0.0) && (error < 0.0)) ||
-          ((lastError < 0.0) && (error > 0.0))) {
-         ITerm = (ITerm + *mySetpoint) / 2.0;
-      }
-      */
-
       lastError = error;
 
       double dInput = (input - lastInput);
@@ -122,7 +110,6 @@ bool PID::Compute()
       return false;
    }
 }
-
 
 /* SetTunings(...)*************************************************************
  * This function allows the controller's dynamic performance to be adjusted.
