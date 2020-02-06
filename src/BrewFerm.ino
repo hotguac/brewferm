@@ -19,6 +19,7 @@
 
 /* Includes ---- photon vendor defined ---------------------------------------*/
 #include "application.h"
+#include "Particle.h"
 
 /* Includes ---- standard libraries ------------------------------------------*/
 #include "stdarg.h"
@@ -73,7 +74,17 @@ double uptime = 0.0;
 double cooltime = 0.0;
 double heattime = 0.0;
 
+int ble_max_count = 0;
+String beaconMajor;
+String beaconMinor;
 
+#if (PLATFORM_ID == PLATFORM_ARGON)
+const size_t SCAN_RESULT_MAX = 30;
+BleCharacteristic tilt;
+BleScanResult scanResults[SCAN_RESULT_MAX];
+BlePeerDevice peer;
+int ble_device_count = 0;
+#endif
 
 PID beerTempPID(&beer_temp_actual, &beer_pid_out, &beer_temp_target,
   BEER_P, BEER_I, BEER_D,
@@ -436,13 +447,14 @@ void update_system_status() {
 void setup() {
     Particle.variable("SystemStatus", system_status);
     Particle.variable("Uptime", uptime);
-    Particle.variable("HeatTime", heattime);
-    Particle.variable("CoolTime", cooltime);
-    Particle.variable("BeerITerm", beerITerm);
-    Particle.variable("ChamberITerm", chamberITerm);
 
     Particle.function("setBeerTarget", setBeerTarget);
     Particle.function("setPauseState", setPause);
+
+    // Always expose these, just may not be valid values
+    Particle.variable("bleDeviceCount", ble_max_count);
+    Particle.variable("beaconMajor", beaconMajor);
+    Particle.variable("beaconMinor", beaconMinor);
 
     checkNetworking();
     initIndicators();
@@ -463,7 +475,72 @@ void setup() {
     ts_lastSim = Time.now();
     ts_last_loop = ts_lastSim - 200; // pretend we last looped 200 seconds ago
     ts_last_publish = ts_last_loop;
+
+#if (PLATFORM_ID == PLATFORM_ARGON)
+    BLE.on();
+#endif
+
 }
+
+#if (PLATFORM_ID == PLATFORM_ARGON)
+void check_bluetooth() {
+    ble_device_count = BLE.scan(scanResults, SCAN_RESULT_MAX);
+    if (ble_device_count > ble_max_count) {
+      ble_max_count = ble_device_count;
+    }
+
+    for (int ii = 0; ii < ble_device_count; ii++) {
+      uint8_t buf[BLE_MAX_ADV_DATA_LEN];
+      size_t len;
+
+      len = scanResults[ii].advertisingData.get(BleAdvertisingDataType::MANUFACTURER_SPECIFIC_DATA, buf, BLE_MAX_ADV_DATA_LEN);
+
+/* example packet
+0 - 4C: manufacturer ID - Apple iBeacon
+1 - 00: manufacturer ID - Apple iBeacon
+2 - 02: type (constant, defined by iBeacon spec)
+3 - 15: length (constant, defined by iBeacon spec)
+4 - A4: device UUID
+5 - 95: device UUID
+6 - BB: device UUID
+7 - 10: device UUID
+8 - C5: device UUID
+9 - B1: device UUID
+10- 4B: device UUID
+11- 44: device UUID
+12- B5: device UUID
+13- 12: device UUID
+14- 13: device UUID
+15- 70: device UUID
+16- F0: device UUID
+17- 2D: device UUID
+18- 74: device UUID
+19- DE: device UUID
+20- 00: major - temperature (in degrees fahrenheit)
+21- 44: major - temperature (in degress fahrenheit)
+22- 03: minor - specific gravity (x1000)
+23- F8: minor - specific gravity (x1000)
+24- C5: TX power in dBm
+25- C7: RSSI in dBm
+*/
+      if (len == 25) {
+        String head = String::format("%02X%02X%02X%02X", buf[0], buf[1], buf[2], buf[3]);
+        if (head == "4C000215") { // found an iBeacon
+          String uuid = String::format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+          buf[4], buf[5], buf[6], // skip buf[7] - it says what color of tilt
+          buf[8], buf[9], buf[10], buf[11],
+          buf[12], buf[13], buf[14], buf[15],
+          buf[16], buf[17], buf[18], buf[19]);
+
+          if (uuid == "A495BBC5B14B44B5121370F02D74DE") { // we found a tilt
+            beaconMinor = String::format("SG = %d", (buf[22] * 256) + buf[23]);
+            beaconMajor = String::format("Temp = %d", (buf[20] * 256) + buf[21]);
+          }
+        }
+      }
+    }
+}
+#endif
 
 /* ---------------------------------------------------------------------------*/
 /* This function loops forever (firmware process loop)
@@ -487,6 +564,10 @@ void loop() {
 
     update_system_status();
     Particle.process();
+
+#if (PLATFORM_ID == PLATFORM_ARGON)
+    check_bluetooth();
+#endif
 
     setIndicatorLEDs(beer_temp_actual, beer_temp_target);
     blinkAndSetPace();

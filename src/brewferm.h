@@ -28,7 +28,7 @@
 #define MIN_LOOP_TIME 8 // seconds
 #define BEER_SAMPLETIME 120 // Compute interval in seconds
 #define CHAMBER_SAMPLETIME 24 // Compute interval in seconds
-#define SEND_STATUS_INTERVAL 240 // in seconds
+#define SEND_STATUS_INTERVAL 600 // in seconds
 
 // What pins are wired to what
 #define LED_PIN   D7

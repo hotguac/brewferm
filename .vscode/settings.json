@@ -6,5 +6,6 @@
         "*.ino": "cpp"
     },
     "particle.firmwareVersion": "1.4.4",
-    "particle.targetPlatform": "photon"
+    "particle.targetPlatform": "argon",
+    "particle.targetDevice": "ArgonBrew1"
 }
