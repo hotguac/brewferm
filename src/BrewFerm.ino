@@ -138,8 +138,15 @@ void initBeerPID(void) {
   control_signal = 50;
 
   adjustChamberTempLimits(beer_temp_target);
-  beerTempPID.SynchITerm();
-  chamberTempPID.SynchITerm();
+
+  //run_calculations();
+
+  beerTempPID.Initialize(beer_temp_actual);
+  chamberTempPID.Initialize(50.0);
+
+  delay(30*1000);
+  run_calculations();
+  update_system_status();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -192,10 +199,10 @@ void get_current_temperatures() {
   // rate on the temp readings. Chamber changes quicker than beer, so
   // it gets a high alpha parameter.
 
-  chamber_temp_actual += 0.95 * (mySensors.GetTempF(SENSORS::CHAMBER) -
+  chamber_temp_actual += 0.99 * (mySensors.GetTempF(SENSORS::CHAMBER) -
                                   chamber_temp_actual);
 
-  beer_temp_actual += 0.95 * (mySensors.GetTempF(SENSORS::BEER) -
+  beer_temp_actual += 0.99 * (mySensors.GetTempF(SENSORS::BEER) -
                                beer_temp_actual);
 }
 
@@ -263,10 +270,10 @@ void run_calculations() {
   // the alpha parameter of y += alpha * (x-y); needs to stay close to
   // unity (1.0) to keep the lag time down
   beerTempPID.Compute();
-  chamber_target_temp += 0.95 * (beer_pid_out - chamber_target_temp);
+  chamber_target_temp += 0.99 * (beer_pid_out - chamber_target_temp);
 
   chamberTempPID.Compute();
-  control_signal += 0.95 * (chamber_pid_out - control_signal);
+  control_signal += 0.99 * (chamber_pid_out - control_signal);
 }
 
 /* ---------------------------------------------------------------------------*/

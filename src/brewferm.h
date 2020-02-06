@@ -35,26 +35,27 @@
 #define GREEN_PIN D0
 #define RED_PIN   D1
 
-// The PID parameters
-#define BEER_P  0.5 // 0.3
-#define BEER_I  0.02
-#define BEER_D  3.0 // 0.3
+// The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
+#define BEER_P  1.5 // 1.0 // 0.8 0.6
+#define BEER_I  0.00004 // 0.00008 // 0.000125 // 0.0005
+#define BEER_D  0.0 // 1.0
 
-#define CHAMBER_P  3
-#define CHAMBER_I  0.2
-#define CHAMBER_D  1.25 // 0.125
+// The Chamber PID parameters; known good values P 4; I 0.04; D 1.25
+#define CHAMBER_P  4 // 4
+#define CHAMBER_I  0.01 // 0.04
+#define CHAMBER_D  0.0 // 1.25
 
 // Tempature control parameters
 // These work with the output of the chamber PID controller
 // On a 1-99 range with 1 being full make it colder and
 // 99 being full make it hotter
-#define COOL_LIMIT1  6
-#define COOL_LIMIT2  30
+#define COOL_LIMIT1  4
+#define COOL_LIMIT2  10
 #define HEAT_LIMIT2  60
 #define HEAT_LIMIT1  96
 
-#define MIN_HEAT_COOL    240   // seconds between turning heat off and cool on
-#define MIN_COOL_HEAT    240   // seconds between turning cool off and heat on
+#define MIN_HEAT_COOL    120   // seconds between turning heat off and cool on
+#define MIN_COOL_HEAT    120   // seconds between turning cool off and heat on
 #define MIN_HEAT_OFF_ON  30    // seconds between turning heat off and heat on
 
 #define MIN_COOL_OFF_ON  360  // seconds between turning cool off and cool on
@@ -66,7 +67,7 @@
 #define MIN_COOL_TIME     30  // minimum seconds between cool on and cool off
 #define MIN_HEAT_TIME     15  // minimum seconds between heat on and heat off
 
-#define MAX_COOL_TIME    180  // seconds between cool on and cool off
+#define MAX_COOL_TIME    360  // seconds between cool on and cool off
 #define MAX_HEAT_TIME    360  // seconds between heat on and heat off
 
 // Other PID algorithm parameters

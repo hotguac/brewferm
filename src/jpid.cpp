@@ -185,8 +185,6 @@ void PID::SetOutputLimits(double Min, double Max)
          }
       }
 
-      ITerm = (outMax + outMin) / 2.0; // 1/23/20
-      /*
 	   if (ITerm > outMax) {
          ITerm = outMax;
       }
@@ -195,7 +193,6 @@ void PID::SetOutputLimits(double Min, double Max)
             ITerm = outMin;
          }
       }
-      */
    }
 }
 
@@ -209,7 +206,7 @@ void PID::SetMode(mode_t Mode)
     bool newAuto = (Mode == AUTOMATIC);
 
     if (newAuto == !inAuto) {  /*we just went from manual to auto*/
-        PID::Initialize();
+        PID::Initialize(*myInput);
     }
 
     inAuto = newAuto;
@@ -219,9 +216,9 @@ void PID::SetMode(mode_t Mode)
  *	does all the things that need to happen to ensure a bumpless transfer
  *  from manual to automatic mode.
  ******************************************************************************/
-void PID::Initialize()
+void PID::Initialize(double i)
 {
-   ITerm = *myOutput;
+   ITerm = i; // *myOutput; chg 1/28/2020
    lastInput = *myInput;
 
    if (ITerm > outMax) {
@@ -236,7 +233,7 @@ void PID::Initialize()
 
 void PID::SynchITerm()
 {
-   ITerm = *mySetpoint;
+   ITerm = *myInput; // *mySetpoint; chg 1/28/2020
 }
 
 /* SetControllerDirection(...)*************************************************
