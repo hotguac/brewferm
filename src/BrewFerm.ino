@@ -78,7 +78,7 @@ int ble_max_count = 0;
 String beaconMajor;
 String beaconMinor;
 
-#if (PLATFORM_ID == PLATFORM_ARGON)
+#if Wiring_BLE
 const size_t SCAN_RESULT_MAX = 30;
 BleCharacteristic tilt;
 BleScanResult scanResults[SCAN_RESULT_MAX];
@@ -482,7 +482,7 @@ void setup() {
 
 }
 
-#if (PLATFORM_ID == PLATFORM_ARGON)
+#if Wiring_BLE
 void check_bluetooth() {
     ble_device_count = BLE.scan(scanResults, SCAN_RESULT_MAX);
     if (ble_device_count > ble_max_count) {
@@ -565,7 +565,7 @@ void loop() {
     update_system_status();
     Particle.process();
 
-#if (PLATFORM_ID == PLATFORM_ARGON)
+#if Wiring_BLE
     check_bluetooth();
 #endif
 

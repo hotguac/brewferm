@@ -28,7 +28,7 @@
 #define MIN_LOOP_TIME 8 // seconds
 #define BEER_SAMPLETIME 120 // Compute interval in seconds
 #define CHAMBER_SAMPLETIME 24 // Compute interval in seconds
-#define SEND_STATUS_INTERVAL 600 // in seconds
+#define SEND_STATUS_INTERVAL 1200 // in seconds
 
 // What pins are wired to what
 #define LED_PIN   D7
@@ -36,8 +36,8 @@
 #define RED_PIN   D1
 
 // The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
-#define BEER_P  1.5 // 1.0 // 0.8 0.6
-#define BEER_I  0.00004 // 0.00008 // 0.000125 // 0.0005
+#define BEER_P  2.6 // 1.8 1.6 1.5 1.0 0.8 0.6
+#define BEER_I  0.00007 // 0.00006 // 0.00005 // 0.00004 0.00008 0.000125 0.0005
 #define BEER_D  0.0 // 1.0
 
 // The Chamber PID parameters; known good values P 4; I 0.04; D 1.25
@@ -49,10 +49,10 @@
 // These work with the output of the chamber PID controller
 // On a 1-99 range with 1 being full make it colder and
 // 99 being full make it hotter
-#define COOL_LIMIT1  4
-#define COOL_LIMIT2  10
+#define COOL_LIMIT1  18 // 4
+#define COOL_LIMIT2  20 // 10
 #define HEAT_LIMIT2  60
-#define HEAT_LIMIT1  96
+#define HEAT_LIMIT1  80 // 96
 
 #define MIN_HEAT_COOL    120   // seconds between turning heat off and cool on
 #define MIN_COOL_HEAT    120   // seconds between turning cool off and heat on
