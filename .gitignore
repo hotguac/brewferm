@@ -1,2 +1,4 @@
 photon_firmware_*.bin
 argon_firmware_*.bin
+.vscode/*
+
