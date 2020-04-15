@@ -1,2 +1,4 @@
-WiFi_Info.h
-screenlog.0
+photon_firmware_*.bin
+argon_firmware_*.bin
+
+.vscode/settings.json
