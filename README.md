@@ -1,5 +1,5 @@
 # brewferm
-Fermentation chamber controller running on a Particle Photon &#174 /Argon family of IoT hardware.
+Fermentation chamber controller running on a Particle&reg; Photon/Argon family of IoT hardware.
 
 Use [Particle Workbench](https://www.particle.io/workbench) to build and deploy.
 
