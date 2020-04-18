@@ -1,20 +1,12 @@
 # brewferm
-Fermentation chamber controller running on a Particle Photon
+Fermentation chamber controller running on a Particle Photon/Argon family of IoT hardware.
 
-Use Local Build method. See vendor's local build page.
-`https://docs.particle.io/support/particle-tools-faq/local-build/`
+Use Particle Workbench to build
+`https://https://www.particle.io/workbench`
 
-Requires the firmware source downloaded from Particle.io
+BrewFerm is a fermentation chamber temperature controller implemented as two nested PID control loops. The outer loop is setup to maintain a target wort temperature. The output of the outer loop PID is a target fermentation chamber temperature. The second, inner PID loop is setup to control heating and cooling of the chamber, as needed, to hold the chamber at the temperature set by the outer loop.
 
-Developed on Debian Stretch
+The reference chamber is a small chest freezer with a small heating element added inside. The Particle IoT device controls two relays which turn the heat and cooling on and off as necessary to maintain temperatures.
 
-To run ferm.py script, MySql-python must be installed
-  `sudo apt-get install python-pip python-dev libmysqlclient-dev gcc-arm-none-eabi make`
-  `pip install MySQL-python`
+The target temperature can be set through a clound interface using the Particle Console `https://console.particle.io/devices` website, the command line interface with a curl command, or the BrewFerm Android application. Each of the interfaces can also display current system status or pause the system to suspend heating and cooling when not in use.
 
-To build the application use this command line
-`make PLATFORM=photon APPDIR=~/Documents/brewferm`
-where APPDIR points to the brewferm source directory.
-
-To build and deploy to a Particle Photon in dfu mode
-'make PLATFORM=photon APPDIR=~/Documents/brewferm program-dfu'
