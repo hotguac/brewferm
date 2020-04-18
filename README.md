@@ -2,7 +2,7 @@
 Fermentation chamber controller running on a Particle Photon/Argon family of IoT hardware.
 
 Use Particle Workbench to build
-`https://https://www.particle.io/workbench`
+`https://www.particle.io/workbench`
 
 BrewFerm is a fermentation chamber temperature controller implemented as two nested PID control loops. The outer loop is setup to maintain a target wort temperature. The output of the outer loop PID is a target fermentation chamber temperature. The second, inner PID loop is setup to control heating and cooling of the chamber, as needed, to hold the chamber at the temperature set by the outer loop.
 
