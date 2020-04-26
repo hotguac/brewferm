@@ -31,9 +31,9 @@
 #define SEND_STATUS_INTERVAL 1200 // in seconds
 
 // What pins are wired to what
-#define LED_PIN   D7
-#define GREEN_PIN D0
-#define RED_PIN   D1
+#define LED_PIN   D3 // D7
+#define GREEN_PIN D3 // D0
+#define RED_PIN   D3 // D1
 
 // The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
 #define BEER_P  2.6 // 1.8 1.6 1.5 1.0 0.8 0.6

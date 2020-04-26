@@ -25,22 +25,64 @@
 
 #define BUFF_SIZE 2048
 
-DS18 sensor(D2);  // define which pin have the sensors connected
+const int nSENSORS = 2;
+retained uint8_t sensorAddresses[nSENSORS][8];
+float celsius[nSENSORS] = {NAN, NAN};
+
+// #############################
+const int16_t dsData = A4; // D3;
+DS18B20 sensor(dsData);
+// #############################
 
 SENSORS::SENSORS(void) {
   beerF = UNKNOWN_TEMP;
   chamberF = UNKNOWN_TEMP;
   ambientF = UNKNOWN_TEMP;
-
-  refresh();
 }
 
+void SENSORS::init(void) {
+  sensor.resetsearch();                 // initialise for sensor search
+    for (int i = 0; i < nSENSORS; i++) {   // try to read the sensor addresses
+      sensor.search(sensorAddresses[i]); // and if available store
+    }
+}
+
+const int MAXRETRY = 3;
+double getTemp(uint8_t addr[8]) {
+  double _temp;
+  int   i = 0;
+
+  do {
+    _temp = sensor.getTemperature(addr);
+    //Serial.println(_temp);
+    //Serial.println("---");
+  } while (!sensor.crcCheck() && MAXRETRY > i++);
+
+  if (i < MAXRETRY) {
+    //_temp = ds18b20.convertToFahrenheit(_temp);
+    //Serial.println("Got a reading");
+    Serial.printf("address = %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
+        addr[0], addr[1], addr[2], addr[3],
+        addr[4], addr[5], addr[6], addr[7]);
+    Serial.println(_temp);
+  }
+  else {
+    _temp = NAN;
+    Serial.println("Invalid reading");
+  }
+
+  return _temp;
+}
+
+//TODO: get this part working!!!!
 void SENSORS::refresh(void) {
+  /* Old code
   // Read the next available 1-Wire temperature sensor
   uint8_t addr[8];
   char buffer[BUFF_SIZE];
-
+//
   sensor.read();
+
   while (!sensor.searchDone()) {
     if (!sensor.crcError()) {
       sensor.addr(addr); // get the address for the temp value
@@ -62,7 +104,12 @@ void SENSORS::refresh(void) {
 
     delay(250);  // need time between reads
     sensor.read();
-  }
+    */ // end of old code
+
+    for (int i = 0; i < nSENSORS; i++) {
+      float temp = getTemp(sensorAddresses[i]);
+      if (!isnan(temp)) celsius[i] = temp;
+    }
 
 }
 

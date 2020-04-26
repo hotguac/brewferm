@@ -43,10 +43,13 @@ White Data -> yellow
 
 */
 
+//#include "DS18.h"
+#include "DS18B20.h"
+
 #ifndef SENSORS_H_
 #define SENSORS_H_
 
-#include "DS18.h"
+//#include "lib/OneWire/src/DS18.h"
 
 class SENSORS {
  public:
@@ -69,6 +72,7 @@ class SENSORS {
 
     double GetID(sensor_use);
     double GetTempF(sensor_use);
+    void init(void);
 
  private:
     void Initialize();

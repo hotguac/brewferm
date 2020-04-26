@@ -41,8 +41,8 @@ class RELAYS {
     unsigned int get_cool_runtime();
 
  private:
-    int relayCoolPin = D4;
-    int relayHeatPin = D5;
+    int relayCoolPin = D2;
+    int relayHeatPin = D7;
 
 
     // these are in seconds

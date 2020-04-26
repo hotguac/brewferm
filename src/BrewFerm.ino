@@ -1,21 +1,19 @@
-/*
- ******************************************************************************
-  Copyright (c) 2019 Joe Kokosa  All rights reserved.
-
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation, either
-  version 3 of the License, or (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this program; if not, see <http://www.gnu.org/licenses/>.
-  ******************************************************************************
-*/
+//*******************************************************************************
+//  Copyright (c) 2019 Joe Kokosa  All rights reserved.
+//
+//  This program is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+//******************************************************************************
 
 /* Includes ---- photon vendor defined ---------------------------------------*/
 #include "application.h"
@@ -31,13 +29,6 @@
 #include "relays.h"
 #include "storage.h"
 #include "jpid.h"
-
-/* Includes ---- 3rd Party ---------------------------------------------------*/
-//#include <pid.h>
-
-PRODUCT_ID(PLATFORM_ID);
-PRODUCT_VERSION(4);
-SYSTEM_MODE(AUTOMATIC);
 
 int OTA_enabled;
 
@@ -135,9 +126,22 @@ void initBeerPID(void) {
   beer_temp_target = myStorage.retrieve_beer_temp_target();
   chamber_target_temp = beer_temp_target;
 
+
+
+
+/*
   mySensors.refresh();
   beer_temp_actual = mySensors.GetTempF(SENSORS::BEER);
   chamber_temp_actual = mySensors.GetTempF(SENSORS::CHAMBER);
+
+*/
+  beer_temp_actual = 60.0;
+  chamber_temp_actual = 60.0;
+
+
+
+
+
 
     // Turn on pid
   beerTempPID.SetMode(PID::AUTOMATIC);
@@ -167,6 +171,7 @@ void initBeerPID(void) {
 
 void checkNetworking(void) {
   if (!Particle.connected()) {
+    WiFi.on();
     Particle.connect();
   }
 
@@ -187,6 +192,8 @@ void checkNetworking(void) {
 void setIndicatorLEDs(double beer_temp_actual, double beer_temp_target) {
   double diff = fabs(beer_temp_actual - beer_temp_target);
 
+  // customStatus.setActive(true);
+
   if (diff < INDICATE_OK) {
     digitalWrite(GREEN_PIN, HIGH);
     digitalWrite(RED_PIN, LOW);
@@ -203,9 +210,10 @@ void setIndicatorLEDs(double beer_temp_actual, double beer_temp_target) {
 // Read sensors to refresh actual temperature values
 /* ---------------------------------------------------------------------------*/
 void get_current_temperatures() {
+
   mySensors.refresh();
 
-  // Apply low pass filters to the temperature sensors to eliminate
+    // Apply low pass filters to the temperature sensors to eliminate
   // noise, the temps change slowly so we're Okay with a slow change
   // rate on the temp readings. Chamber changes quicker than beer, so
   // it gets a high alpha parameter.
@@ -215,15 +223,18 @@ void get_current_temperatures() {
 
   beer_temp_actual += 0.99 * (mySensors.GetTempF(SENSORS::BEER) -
                                beer_temp_actual);
+
 }
 
 /* ---------------------------------------------------------------------------*/
 // Flash the indicator on the Photon so we now the loop is still running
 /* ---------------------------------------------------------------------------*/
 void blinkAndSetPace(void) {
+  /*
   digitalWrite(LED_PIN, HIGH);
   delay(500); // flash for half second; off time determined by delay below
   digitalWrite(LED_PIN, LOW);
+  */
 
   ts_next_loop = ts_last_loop + MIN_LOOP_TIME;
   ts_now = Time.now();
@@ -235,6 +246,8 @@ void blinkAndSetPace(void) {
   ts_last_loop = Time.now();
 }
 
+/* ---------------------------------------------------------------------------*/
+//
 /* ---------------------------------------------------------------------------*/
 void run_calculations() {
   // this is just for testing without any sensors attached
@@ -441,47 +454,6 @@ void update_system_status() {
     }
 }
 
-/* ---------------------------------------------------------------------------*/
-// This function is called once by the OS at device start up
-/* ---------------------------------------------------------------------------*/
-void setup() {
-    Particle.variable("SystemStatus", system_status);
-    Particle.variable("Uptime", uptime);
-
-    Particle.function("setBeerTarget", setBeerTarget);
-    Particle.function("setPauseState", setPause);
-
-    // Always expose these, just may not be valid values
-    Particle.variable("bleDeviceCount", ble_max_count);
-    Particle.variable("beaconMajor", beaconMajor);
-    Particle.variable("beaconMinor", beaconMinor);
-
-    checkNetworking();
-    initIndicators();
-    initBeerPID();
-
-    paused = myStorage.retrieve_pause_state();
-
-    // prime the pump for adjustbeer_temp_actual()
-    mySensors.refresh();
-
-    // these are fake values for test when no sensors attached
-    fake_beer_temp = 64.7;
-    fake_chamber_temp = 70.0;
-
-    cool_limit = COOL_LIMIT2;
-    heat_limit = HEAT_LIMIT2;
-
-    ts_lastSim = Time.now();
-    ts_last_loop = ts_lastSim - 200; // pretend we last looped 200 seconds ago
-    ts_last_publish = ts_last_loop;
-
-#if (PLATFORM_ID == PLATFORM_ARGON)
-    BLE.on();
-#endif
-
-}
-
 #if Wiring_BLE
 void check_bluetooth() {
     ble_device_count = BLE.scan(scanResults, SCAN_RESULT_MAX);
@@ -542,9 +514,68 @@ void check_bluetooth() {
 }
 #endif
 
-/* ---------------------------------------------------------------------------*/
-/* This function loops forever (firmware process loop)
-/* ---------------------------------------------------------------------------*/
+
+// setup() runs once, when the device is first turned on.
+void setup() {
+  Particle.variable("SystemStatus", system_status);
+  Particle.variable("Uptime", uptime);
+
+  Particle.function("setBeerTarget", setBeerTarget);
+  Particle.function("setPauseState", setPause);
+
+  // Always expose these, just may not be valid values
+  Particle.variable("bleDeviceCount", ble_max_count);
+  Particle.variable("beaconMajor", beaconMajor);
+  Particle.variable("beaconMinor", beaconMinor);
+
+  // Just to see what's up
+  Serial.begin(9600);
+  delay(10000); // give time to connect to tty
+  Serial.println("opening");
+  delay(500);
+
+  checkNetworking();
+  initIndicators();
+  initBeerPID();
+
+  paused = myStorage.retrieve_pause_state();
+
+  // these are fake values for test when no sensors attached
+  fake_beer_temp = 64.7;
+  fake_chamber_temp = 70.0;
+
+  cool_limit = COOL_LIMIT2;
+  heat_limit = HEAT_LIMIT2;
+
+  ts_lastSim = Time.now();
+  ts_last_loop = ts_lastSim - 200; // pretend we last looped 200 seconds ago
+  ts_last_publish = ts_last_loop;
+
+  Serial.println("Getting ready to init sensors");
+  delay(500);
+  mySensors.init();
+  Serial.println("After init, start sensor refresh");
+  delay(500);
+  mySensors.refresh();
+  Serial.println("After refresh");
+  delay(500);
+
+#if Wiring_BLE
+    BLE.on();
+#endif
+
+  // Put initialization like pinMode and begin functions here.
+
+  pinMode(D2, OUTPUT); // end
+  digitalWrite(D2, LOW);
+
+  pinMode(D7, OUTPUT);
+  digitalWrite(D7, LOW); // middle
+
+  // above here new code
+}
+
+// loop() runs over and over again, as quickly as it can execute.
 void loop() {
     checkNetworking();
     Particle.process();
@@ -571,4 +602,19 @@ void loop() {
 
     setIndicatorLEDs(beer_temp_actual, beer_temp_target);
     blinkAndSetPace();
+
+    // The core of your code will likely live here.
+    /*
+    digitalWrite(D2, HIGH);
+    delay(1*1000);
+    digitalWrite(D2, LOW);
+
+    delay(10*1000);
+
+    digitalWrite(D7, HIGH);
+    delay(1*1000);
+    digitalWrite(D7, LOW);
+
+    delay(30*1000);
+    */
 }
