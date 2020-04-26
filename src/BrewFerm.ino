@@ -126,24 +126,12 @@ void initBeerPID(void) {
   beer_temp_target = myStorage.retrieve_beer_temp_target();
   chamber_target_temp = beer_temp_target;
 
-
-
-
-/*
-  mySensors.refresh();
-  beer_temp_actual = mySensors.GetTempF(SENSORS::BEER);
-  chamber_temp_actual = mySensors.GetTempF(SENSORS::CHAMBER);
-
-*/
+  // use dummy values for now, they'll update first time
+  // we read sensors
   beer_temp_actual = 60.0;
   chamber_temp_actual = 60.0;
 
-
-
-
-
-
-    // Turn on pid
+  // Turn on pid
   beerTempPID.SetMode(PID::AUTOMATIC);
   beerTempPID.SetSampleTime(BEER_SAMPLETIME*1000);
 
@@ -153,8 +141,6 @@ void initBeerPID(void) {
   control_signal = 50;
 
   adjustChamberTempLimits(beer_temp_target);
-
-  //run_calculations();
 
   beerTempPID.Initialize(beer_temp_actual);
   chamberTempPID.Initialize(50.0);
@@ -227,15 +213,9 @@ void get_current_temperatures() {
 }
 
 /* ---------------------------------------------------------------------------*/
-// Flash the indicator on the Photon so we now the loop is still running
+// Temps change slowly so we don't want to feed PID to frequently
 /* ---------------------------------------------------------------------------*/
-void blinkAndSetPace(void) {
-  /*
-  digitalWrite(LED_PIN, HIGH);
-  delay(500); // flash for half second; off time determined by delay below
-  digitalWrite(LED_PIN, LOW);
-  */
-
+void SetPace(void) {
   ts_next_loop = ts_last_loop + MIN_LOOP_TIME;
   ts_now = Time.now();
 
@@ -455,18 +435,6 @@ void update_system_status() {
 }
 
 #if Wiring_BLE
-void check_bluetooth() {
-    ble_device_count = BLE.scan(scanResults, SCAN_RESULT_MAX);
-    if (ble_device_count > ble_max_count) {
-      ble_max_count = ble_device_count;
-    }
-
-    for (int ii = 0; ii < ble_device_count; ii++) {
-      uint8_t buf[BLE_MAX_ADV_DATA_LEN];
-      size_t len;
-
-      len = scanResults[ii].advertisingData.get(BleAdvertisingDataType::MANUFACTURER_SPECIFIC_DATA, buf, BLE_MAX_ADV_DATA_LEN);
-
 /* example packet
 0 - 4C: manufacturer ID - Apple iBeacon
 1 - 00: manufacturer ID - Apple iBeacon
@@ -495,6 +463,21 @@ void check_bluetooth() {
 24- C5: TX power in dBm
 25- C7: RSSI in dBm
 */
+//---------------------------------------------------------------------------
+//
+//---------------------------------------------------------------------------
+void check_bluetooth() {
+    ble_device_count = BLE.scan(scanResults, SCAN_RESULT_MAX);
+    if (ble_device_count > ble_max_count) {
+      ble_max_count = ble_device_count;
+    }
+
+    for (int ii = 0; ii < ble_device_count; ii++) {
+      uint8_t buf[BLE_MAX_ADV_DATA_LEN];
+      size_t len;
+
+      len = scanResults[ii].advertisingData.get(BleAdvertisingDataType::MANUFACTURER_SPECIFIC_DATA, buf, BLE_MAX_ADV_DATA_LEN);
+
       if (len == 25) {
         String head = String::format("%02X%02X%02X%02X", buf[0], buf[1], buf[2], buf[3]);
         if (head == "4C000215") { // found an iBeacon
@@ -514,8 +497,9 @@ void check_bluetooth() {
 }
 #endif
 
-
+//---------------------------------------------------------------------------
 // setup() runs once, when the device is first turned on.
+//---------------------------------------------------------------------------
 void setup() {
   Particle.variable("SystemStatus", system_status);
   Particle.variable("Uptime", uptime);
@@ -564,18 +548,18 @@ void setup() {
     BLE.on();
 #endif
 
-  // Put initialization like pinMode and begin functions here.
-
+  // Start with relays off
+  //TODO: replace pin numbers with the defined versions
   pinMode(D2, OUTPUT); // end
   digitalWrite(D2, LOW);
 
   pinMode(D7, OUTPUT);
   digitalWrite(D7, LOW); // middle
-
-  // above here new code
 }
 
+//---------------------------------------------------------------------------
 // loop() runs over and over again, as quickly as it can execute.
+//---------------------------------------------------------------------------
 void loop() {
     checkNetworking();
     Particle.process();
@@ -601,20 +585,5 @@ void loop() {
 #endif
 
     setIndicatorLEDs(beer_temp_actual, beer_temp_target);
-    blinkAndSetPace();
-
-    // The core of your code will likely live here.
-    /*
-    digitalWrite(D2, HIGH);
-    delay(1*1000);
-    digitalWrite(D2, LOW);
-
-    delay(10*1000);
-
-    digitalWrite(D7, HIGH);
-    delay(1*1000);
-    digitalWrite(D7, LOW);
-
-    delay(30*1000);
-    */
+    SetPace();
 }

@@ -1,4 +1,11 @@
 photon_firmware_*.bin
 argon_firmware_*.bin
+lastgood.bin
 
 .vscode/settings.json
+
+target/*
+
+src/BrewFerm.cpp
+.vscode/c_cpp_properties.json
+.vscode/launch.json
