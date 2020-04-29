@@ -48,6 +48,9 @@ PID::PID(double* Input,
    PID::SetTunings(Kp, Ki, Kd);
 
    lastTime = millis() - SampleTime;
+
+   lastInput = 0;
+   lastError = 0;
 }
 
 /* Compute() **********************************************************************

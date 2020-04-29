@@ -25,10 +25,10 @@
 
 // Controls how frequently the process loop runs
 // We slow it down because the temps don't change quickly
-#define MIN_LOOP_TIME 8 // seconds
+#define MIN_LOOP_TIME 12 // seconds
 #define BEER_SAMPLETIME 120 // Compute interval in seconds
 #define CHAMBER_SAMPLETIME 24 // Compute interval in seconds
-#define SEND_STATUS_INTERVAL 1200 // in seconds
+#define SEND_STATUS_INTERVAL 1200 // 1200 // in seconds
 
 // What pins are wired to what
 #define LED_PIN   D3 // D7

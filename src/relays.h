@@ -44,7 +44,6 @@ class RELAYS {
     int relayCoolPin = D2;
     int relayHeatPin = D7;
 
-
     // these are in seconds
     unsigned int heat_runtime;
     unsigned int cool_runtime;

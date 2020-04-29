@@ -406,8 +406,11 @@ void update_system_status() {
     char buffer[MAX_DATA_SIZE];
     memset(buffer, 0, sizeof(buffer));
 
+    char buf[10];
+    beaconMinor.toCharArray(buf, beaconMinor.length()+1);
+
     snprintf(buffer, sizeof(buffer),
-      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|BI:%.1f|CI:%.1f|end",
+      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|BI:%.1f|CI:%.1f|%s|end",
         beer_temp_target,
         beer_temp_actual,
         chamber_target_temp,
@@ -416,7 +419,8 @@ void update_system_status() {
         percent_heat,
         percent_cool,
         beerTempPID.GetITerm(),
-        chamberTempPID.GetITerm()
+        chamberTempPID.GetITerm(),
+        buf
         );
 
     system_status.remove(0);
@@ -488,7 +492,7 @@ void check_bluetooth() {
           buf[16], buf[17], buf[18], buf[19]);
 
           if (uuid == "A495BBC5B14B44B5121370F02D74DE") { // we found a tilt
-            beaconMinor = String::format("SG = %d", (buf[22] * 256) + buf[23]);
+            beaconMinor = String::format("SG:%d", (buf[22] * 256) + buf[23]);
             beaconMajor = String::format("Temp = %d", (buf[20] * 256) + buf[21]);
           }
         }

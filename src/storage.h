@@ -40,8 +40,11 @@ class STORAGE {
     double retrieve_beer_temp_target();
     void store_pause_state(boolean state);
     boolean retrieve_pause_state();
- private:
-    MySP mySP;
+
+   // STORAGE(void);
+
+ //private:
+    //MySP mySP;
 };
 
 #endif  // STORAGE_H_

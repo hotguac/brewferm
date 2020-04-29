@@ -18,9 +18,10 @@
 */
 
 #include "relays.h"
-//#include "application.h"
 
-/*----------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
 RELAYS::RELAYS(void) {
   pinMode(relayCoolPin, OUTPUT);
   pinMode(relayHeatPin, OUTPUT);
@@ -43,19 +44,15 @@ RELAYS::RELAYS(void) {
   digitalWrite(relayHeatPin, LOW);
 }
 
-/*----------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
 void RELAYS::heatON(void) {
   time_t now = Time.now();
 
   if (heat_cool_Status == COOLING_ON) {
     if ((now - ts_coolON) > MIN_COOL_TIME) {
       idle();
-      /*
-      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
-      digitalWrite(relayCoolPin, LOW);
-      ts_coolOFF = now;
-      heat_cool_Status = IDLE;
-      */
     }
   }
 
@@ -75,12 +72,6 @@ void RELAYS::heatON(void) {
   if (heat_cool_Status == HEATER_ON) {
     if ((now - ts_heatON) > MAX_HEAT_TIME) {
       idle();
-      /*
-      digitalWrite(relayHeatPin, LOW);
-      digitalWrite(relayCoolPin, LOW);
-      heat_cool_Status = IDLE;
-      ts_heatOFF = now;
-      */
     } else {  // these should already be set, but just in case
       digitalWrite(relayCoolPin, LOW);
       digitalWrite(relayHeatPin, HIGH);
@@ -88,20 +79,14 @@ void RELAYS::heatON(void) {
   }
 }
 
-/*----------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
 void RELAYS::coolON(void) {
   time_t now = Time.now();
 
   if (heat_cool_Status == HEATER_ON) {
     idle();
-    /*
-    if ((now - ts_heatON) > MIN_HEAT_TIME) {
-      digitalWrite(relayHeatPin, LOW);  // always turn off, just in case
-      digitalWrite(relayCoolPin, LOW);
-      ts_heatOFF = now;
-      heat_cool_Status = IDLE;
-    }
-    */
   }
 
   if (heat_cool_Status == IDLE) {
@@ -120,12 +105,6 @@ void RELAYS::coolON(void) {
   if (heat_cool_Status == COOLING_ON) {
     if ((now - ts_coolON) > MAX_COOL_TIME) {
       idle();
-      /*
-      digitalWrite(relayHeatPin, LOW);
-      digitalWrite(relayCoolPin, LOW);
-      heat_cool_Status = IDLE;
-      ts_coolOFF = now;
-      */
     }
 
   }
@@ -136,7 +115,9 @@ void RELAYS::coolON(void) {
   }
 }
 
-/*----------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
 void RELAYS::idle(void) {
   time_t now = Time.now();
 
@@ -163,7 +144,9 @@ void RELAYS::idle(void) {
 
 }
 
-/*----------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
 mode_heat_cool RELAYS::getHeatCoolStatus() {
   return heat_cool_Status;
 }
