@@ -36,8 +36,8 @@
 #define RED_PIN   D3 // D1
 
 // The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
-#define BEER_P  2.6 // 1.8 1.6 1.5 1.0 0.8 0.6
-#define BEER_I  0.00007 // 0.00006 // 0.00005 // 0.00004 0.00008 0.000125 0.0005
+#define BEER_P  3.2 // 2.6 // 1.8 1.6 1.5 1.0 0.8 0.6
+#define BEER_I  0.00010 // 0.00007 // 0.00006 0.00005 // 0.00004 0.00008 0.000125 0.0005
 #define BEER_D  0.0 // 1.0
 
 // The Chamber PID parameters; known good values P 4; I 0.04; D 1.25

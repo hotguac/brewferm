@@ -67,7 +67,8 @@ double heattime = 0.0;
 
 int ble_max_count = 0;
 String beaconMajor;
-String beaconMinor;
+
+double tilt_sg = 0.0;
 
 #if Wiring_BLE
 const size_t SCAN_RESULT_MAX = 30;
@@ -128,8 +129,8 @@ void initBeerPID(void) {
 
   // use dummy values for now, they'll update first time
   // we read sensors
-  beer_temp_actual = 60.0;
-  chamber_temp_actual = 60.0;
+  beer_temp_actual = beer_temp_target; // 60.0; // 5/7/2020
+  chamber_temp_actual = beer_temp_target; // 60.0;
 
   // Turn on pid
   beerTempPID.SetMode(PID::AUTOMATIC);
@@ -142,8 +143,9 @@ void initBeerPID(void) {
 
   adjustChamberTempLimits(beer_temp_target);
 
-  beerTempPID.Initialize(beer_temp_actual);
-  chamberTempPID.Initialize(50.0);
+  // beerTempPID.Initialize(beer_temp_actual);
+  beerTempPID.Initialize(beer_temp_target); // 5/7/2020
+  chamberTempPID.Initialize(50.0); // this isn't a temp but a control signal
 
   delay(30*1000);
   run_calculations();
@@ -195,7 +197,7 @@ void setIndicatorLEDs(double beer_temp_actual, double beer_temp_target) {
 /* ---------------------------------------------------------------------------*/
 // Read sensors to refresh actual temperature values
 /* ---------------------------------------------------------------------------*/
-void get_current_temperatures() {
+void read_sensors() {
 
   mySensors.refresh();
 
@@ -210,6 +212,9 @@ void get_current_temperatures() {
   beer_temp_actual += 0.99 * (mySensors.GetTempF(SENSORS::BEER) -
                                beer_temp_actual);
 
+#if Wiring_BLE
+    check_bluetooth();
+#endif
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -406,11 +411,8 @@ void update_system_status() {
     char buffer[MAX_DATA_SIZE];
     memset(buffer, 0, sizeof(buffer));
 
-    char buf[10];
-    beaconMinor.toCharArray(buf, beaconMinor.length()+1);
-
     snprintf(buffer, sizeof(buffer),
-      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|BI:%.1f|CI:%.1f|%s|end",
+      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|BI:%.1f|CI:%.1f|SG:%1.3f|end",
         beer_temp_target,
         beer_temp_actual,
         chamber_target_temp,
@@ -420,7 +422,7 @@ void update_system_status() {
         percent_cool,
         beerTempPID.GetITerm(),
         chamberTempPID.GetITerm(),
-        buf
+        tilt_sg
         );
 
     system_status.remove(0);
@@ -492,8 +494,8 @@ void check_bluetooth() {
           buf[16], buf[17], buf[18], buf[19]);
 
           if (uuid == "A495BBC5B14B44B5121370F02D74DE") { // we found a tilt
-            beaconMinor = String::format("SG:%d", (buf[22] * 256) + buf[23]);
             beaconMajor = String::format("Temp = %d", (buf[20] * 256) + buf[21]);
+            tilt_sg = ((buf[22] * 256) + buf[23]) / 1000.0;
           }
         }
       }
@@ -514,7 +516,6 @@ void setup() {
   // Always expose these, just may not be valid values
   Particle.variable("bleDeviceCount", ble_max_count);
   Particle.variable("beaconMajor", beaconMajor);
-  Particle.variable("beaconMinor", beaconMinor);
 
   // Just to see what's up
   Serial.begin(9600);
@@ -568,7 +569,7 @@ void loop() {
     checkNetworking();
     Particle.process();
 
-    get_current_temperatures();  // reads the sensosrs to get temps
+    read_sensors();  // reads the sensosrs to get temps
     Particle.process();
 
     if (!paused) {
@@ -583,10 +584,6 @@ void loop() {
 
     update_system_status();
     Particle.process();
-
-#if Wiring_BLE
-    check_bluetooth();
-#endif
 
     setIndicatorLEDs(beer_temp_actual, beer_temp_target);
     SetPace();
