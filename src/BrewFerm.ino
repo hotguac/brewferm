@@ -322,15 +322,15 @@ void control_HeatCool(void) {
   if (paused) {
     myRelays.idle();
     heat_cool_status = IDLE;
-    target_action = "Paused";
+    target_action = "Paus";
   } else if (control_signal < cool_limit) {
     myRelays.coolON();
     heat_cool_status = COOLING_ON;
-    target_action = "Cooling";
+    target_action = "Cool";
   } else if (control_signal > heat_limit) {
     myRelays.heatON();
     heat_cool_status = HEATER_ON;
-    target_action = "Heating";
+    target_action = "Heat";
   } else {
     myRelays.idle();
     heat_cool_status = IDLE;
@@ -339,14 +339,14 @@ void control_HeatCool(void) {
 
   switch (myRelays.getHeatCoolStatus()) {
     case COOLING_ON:
-      current_action = "Cooling";
+      current_action = "Cool";
       break;
     case HEATER_ON:
-      current_action = "Heating";
+      current_action = "Heat";
       break;
     case IDLE:
       if (paused) {
-        current_action = "Paused";
+        current_action = "Paus";
       } else {
         current_action = "Idle";
       }
