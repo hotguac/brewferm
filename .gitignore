@@ -1,5 +1,5 @@
-photon_firmware_*.bin
-argon_firmware_*.bin
+photon_*.bin
+argon_*.bin
 lastgood.bin
 
 .vscode/settings.json

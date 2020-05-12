@@ -412,7 +412,7 @@ void update_system_status() {
     memset(buffer, 0, sizeof(buffer));
 
     snprintf(buffer, sizeof(buffer),
-      "|BT:%.1f|BA:%.1f|CT:%.1f|CA:%.1f|CS:%.1f|PH:%.1f|PC:%.1f|BI:%.1f|CI:%.1f|SG:%1.3f|end",
+      "|BT:%4.1f|BA:%4.1f|CT:%4.1f|CA:%4.1f|CS:%4.1f|PH:%4.1f|PC:%4.1f|BI:%4.1f|CI:%4.1f|SG:%5.3f|end",
         beer_temp_target,
         beer_temp_actual,
         chamber_target_temp,
