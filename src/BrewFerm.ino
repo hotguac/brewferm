@@ -182,6 +182,7 @@ void setIndicatorLEDs(double beer_temp_actual, double beer_temp_target) {
 
   // customStatus.setActive(true);
 
+/*
   if (diff < INDICATE_OK) {
     digitalWrite(GREEN_PIN, HIGH);
     digitalWrite(RED_PIN, LOW);
@@ -192,6 +193,8 @@ void setIndicatorLEDs(double beer_temp_actual, double beer_temp_target) {
     digitalWrite(GREEN_PIN, LOW);
     digitalWrite(RED_PIN, HIGH);
   }
+*/
+
 }
 
 /* ---------------------------------------------------------------------------*/
