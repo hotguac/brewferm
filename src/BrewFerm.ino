@@ -28,6 +28,7 @@
 #include "sensors.h"
 #include "relays.h"
 #include "storage.h"
+#include "indicators.h"
 #include "jpid.h"
 
 int OTA_enabled;
@@ -88,6 +89,7 @@ PID chamberTempPID(&chamber_temp_actual, &chamber_pid_out, &chamber_target_temp,
 
 RELAYS myRelays;
 STORAGE myStorage;
+INDICATORS myIndicator;
 
 /* ---------------------------------------------------------------------------*/
 // Set the upper and lower bounds for the beer PID output value
@@ -172,29 +174,6 @@ void checkNetworking(void) {
   if (!OTA_enabled) {
     System.enableUpdates();
   }
-}
-
-/* ---------------------------------------------------------------------------*/
-// Set the indicators for beer in temp rage
-/* ---------------------------------------------------------------------------*/
-void setIndicatorLEDs(double beer_temp_actual, double beer_temp_target) {
-  double diff = fabs(beer_temp_actual - beer_temp_target);
-
-  // customStatus.setActive(true);
-
-/*
-  if (diff < INDICATE_OK) {
-    digitalWrite(GREEN_PIN, HIGH);
-    digitalWrite(RED_PIN, LOW);
-  } else if (diff < INDICATE_CLOSE) {
-    digitalWrite(GREEN_PIN, HIGH);
-    digitalWrite(RED_PIN, HIGH);
-  } else {
-    digitalWrite(GREEN_PIN, LOW);
-    digitalWrite(RED_PIN, HIGH);
-  }
-*/
-
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -530,6 +509,8 @@ void setup() {
   initIndicators();
   initBeerPID();
 
+  myIndicator.init();
+
   paused = myStorage.retrieve_pause_state();
 
   // these are fake values for test when no sensors attached
@@ -588,6 +569,9 @@ void loop() {
     update_system_status();
     Particle.process();
 
-    setIndicatorLEDs(beer_temp_actual, beer_temp_target);
+//src/BrewFerm.ino:572: undefined reference to `INDICATORS::setStatus(float)'
+//collect2: error: ld returned 1 exit status
+    myIndicator.setStatus(beer_temp_actual - beer_temp_target);
+
     SetPace();
 }
