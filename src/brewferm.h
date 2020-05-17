@@ -36,14 +36,14 @@
 #define RED_PIN   D3 // D1
 
 // The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
-#define BEER_P  3.2 // 2.6
-#define BEER_I  0.00010 // 0.00007
-#define BEER_D  0.0 // 1.0
+#define BEER_P_DEFAULT  3.2 // 2.6
+#define BEER_I_DEFAULT  0.00010 // 0.00007
+#define BEER_D_DEFAULT  0.0 // 1.0
 
 // The Chamber PID parameters; known good values P 4; I 0.04; D 1.25
-#define CHAMBER_P  4 // 4
-#define CHAMBER_I  0.01 // 0.04
-#define CHAMBER_D  0.0 // 1.25
+#define CHAMBER_P_DEFAULT  4 // 4
+#define CHAMBER_I_DEFAULT  0.01 // 0.04
+#define CHAMBER_D_DEFAULT  0.0 // 1.25
 
 // Tempature control parameters
 // These work with the output of the chamber PID controller

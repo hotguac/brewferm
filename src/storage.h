@@ -37,14 +37,39 @@ class STORAGE {
  public:
   // commonly used functions
     void store_beer_temp_target(double sp);
-    double retrieve_beer_temp_target();
     void store_pause_state(boolean state);
-    boolean retrieve_pause_state();
+    void store_beer_pid(double p, double i, double d);
+    void store_chamber_pid(double p, double i, double d);
 
-   // STORAGE(void);
+    double beer_temp_target();
+    boolean pause_state();
 
- //private:
-    //MySP mySP;
+    double beer_P();
+    double beer_I();
+    double beer_D();
+
+    double chamber_P();
+    double chamber_I();
+    double chamber_D();
+
+  private:
+    void init(void);
+    boolean init_ran = false;
+
+  // stored values
+    double beer_target = 64.0; //TODO: get default from brewferm.h
+
+    boolean paused = true;
+
+    double beer_P = BEER_P_DEFAULT;
+    double beer_I = BEER_I_DEFAULT;
+    double beer_D = BEER_D_DEFAULT;
+
+    double chamber_P = CHAMBER_P_DEFAULT;
+    double chamber_I = CHAMBER_I_DEFAULT;
+    double chamber_D = CHAMBER_D_DEFAULT;
+
+
 };
 
 #endif  // STORAGE_H_

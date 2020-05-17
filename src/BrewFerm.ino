@@ -80,12 +80,10 @@ int ble_device_count = 0;
 #endif
 
 PID beerTempPID(&beer_temp_actual, &beer_pid_out, &beer_temp_target,
-  BEER_P, BEER_I, BEER_D,
-  PID::DIRECT);
+  BEER_P_DEFAULT, BEER_I_DEFAULT, BEER_D_DEFAULT, PID::DIRECT);
 
 PID chamberTempPID(&chamber_temp_actual, &chamber_pid_out, &chamber_target_temp,
-    CHAMBER_P, CHAMBER_I, CHAMBER_D,
-    PID::DIRECT);
+    CHAMBER_P_DEFAULT, CHAMBER_I_DEFAULT, CHAMBER_D_DEFAULT, PID::DIRECT);
 
 RELAYS myRelays;
 STORAGE myStorage;
@@ -113,7 +111,7 @@ void adjustChamberTempLimits(double sp) {
 void initBeerPID(void) {
   // Init pid fields
   beer_temp_target = DEFAULT_SP;
-  beer_temp_target = myStorage.retrieve_beer_temp_target();
+  beer_temp_target = myStorage.beer_temp_target();
   chamber_target_temp = beer_temp_target;
 
   // use dummy values for now, they'll update first time
@@ -495,9 +493,7 @@ void setup() {
   checkNetworking();
   initBeerPID();
 
-  myIndicator.init();
-
-  paused = myStorage.retrieve_pause_state();
+  paused = myStorage.pause_state();
 
   // these are fake values for test when no sensors attached
   fake_beer_temp = 64.7;
