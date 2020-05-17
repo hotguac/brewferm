@@ -27,9 +27,6 @@ class INDICATORS {
         void setNearTemp(void);
         void setOutOfRange(float);
         void setStatus(float);
-
-    private:
-        void setInit(void);
 };
 
 class CustomStatus: public LEDStatus {
