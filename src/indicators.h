@@ -4,10 +4,10 @@
 #include "Particle.h"
 #include "rgbled.h"
 
-#define IND_COLOR_PREAMBLE1 0x001f1f1f
+#define IND_COLOR_PREAMBLE1 0x000e0e0e
 #define IND_COLOR_PREAMBLE2 0x008f8f8f
 #define IND_COLOR_INIT      RGB_COLOR_BLUE
-#define IND_COLOR_PAUSED    0x00101010
+#define IND_COLOR_PAUSED    RGB_COLOR_BLUE
 #define IND_COLOR_IN_TEMP   RGB_COLOR_GREEN
 #define IND_COLOR_NEAR_TEMP RGB_COLOR_YELLOW
 #define IND_COLOR_OUT1      RGB_COLOR_ORANGE
@@ -58,9 +58,6 @@ private:
 
     uint32_t colors[MAX_COLOR_SEQ_SIZE];
     size_t colorCount;
-
-    //static const uint32_t colors[];
-    //static const size_t colorCount;
 };
 
 #endif  // INDICATORS_H_
