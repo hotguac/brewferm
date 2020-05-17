@@ -526,6 +526,8 @@ void setup() {
 
   pinMode(D7, OUTPUT);
   digitalWrite(D7, LOW); // middle
+
+  myIndicator.init();
 }
 
 //---------------------------------------------------------------------------
@@ -551,8 +553,6 @@ void loop() {
     update_system_status();
     Particle.process();
 
-//src/BrewFerm.ino:572: undefined reference to `INDICATORS::setStatus(float)'
-//collect2: error: ld returned 1 exit status
     myIndicator.setStatus(beer_temp_actual - beer_temp_target);
 
     SetPace();
