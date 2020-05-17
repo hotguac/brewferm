@@ -33,11 +33,8 @@ INDICATORS::INDICATORS(void) {
 
 void INDICATORS::init(void) {
     // Activate custom status
+    customStatus.setColors(init_colors, init_colorCount);
     customStatus.setActive(true);
-}
-
-// private functions
-void INDICATORS::setInit(void) {
 }
 
 void INDICATORS::setPaused(void) {
