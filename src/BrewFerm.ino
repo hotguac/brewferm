@@ -107,19 +107,6 @@ void adjustChamberTempLimits(double sp) {
   chamberTempPID.SetOutputLimits(1, 99);
 }
 
-// ----------------
-// Define LED modes
-// ----------------
-void initIndicators(void) {
-  pinMode(RED_PIN, OUTPUT);
-  pinMode(GREEN_PIN, OUTPUT);
-  pinMode(LED_PIN, OUTPUT);
-
-  digitalWrite(LED_PIN, HIGH);
-  digitalWrite(RED_PIN, HIGH);
-  digitalWrite(GREEN_PIN, HIGH);
-}
-
 // ----------------------------------
 // Initialize and prime beer temp PID
 // ----------------------------------
@@ -506,7 +493,6 @@ void setup() {
   delay(500);
 
   checkNetworking();
-  initIndicators();
   initBeerPID();
 
   myIndicator.init();
