@@ -22,7 +22,7 @@ void CustomStatus::setColors(uint32_t color_seq[], size_t count) {
         colorCount = MAX_COLOR_SEQ_SIZE;
     }
 
-    for (int i = 0; i < colorCount; ++i) {
+    for (size_t i = 0; i < colorCount; ++i) {
         colors[i] = color_seq[i];
     }
 }
