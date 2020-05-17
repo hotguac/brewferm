@@ -61,15 +61,13 @@ class STORAGE {
 
     boolean paused = true;
 
-    double beer_P = BEER_P_DEFAULT;
-    double beer_I = BEER_I_DEFAULT;
-    double beer_D = BEER_D_DEFAULT;
+    double beer_P_value = BEER_P_DEFAULT;
+    double beer_I_value = BEER_I_DEFAULT;
+    double beer_D_value = BEER_D_DEFAULT;
 
-    double chamber_P = CHAMBER_P_DEFAULT;
-    double chamber_I = CHAMBER_I_DEFAULT;
-    double chamber_D = CHAMBER_D_DEFAULT;
-
-
+    double chamber_P_value = CHAMBER_P_DEFAULT;
+    double chamber_I_value = CHAMBER_I_DEFAULT;
+    double chamber_D_value = CHAMBER_D_DEFAULT;
 };
 
 #endif  // STORAGE_H_
