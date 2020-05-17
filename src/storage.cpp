@@ -22,23 +22,15 @@
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-void STORAGE::store_beer_temp_target(double sp) {
-    EEPROM.put(0, sp);
+void STORAGE::init(void) {
+  init_ran = true;
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-double STORAGE::retrieve_beer_temp_target() {
-  double temp;
-  EEPROM.get(0, temp);
-
-  if ((temp < MIN_SP) || (temp > MAX_SP)) {
-      temp = DEFAULT_SP;
-      store_beer_temp_target(temp);
-  }
-
-  return temp;
+void STORAGE::store_beer_temp_target(double sp) {
+    EEPROM.put(0, sp);
 }
 
 //----------------------------------------------------------------------------
@@ -51,10 +43,41 @@ void STORAGE::store_pause_state(boolean state) {
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-boolean STORAGE::retrieve_pause_state() {
+double STORAGE::beer_temp_target() {
+  if (!init_ran) {
+    init();
+  }
+
+  return beer_target;
+
+/* old code
+  double temp;
+  EEPROM.get(0, temp);
+
+  if ((temp < MIN_SP) || (temp > MAX_SP)) {
+      temp = DEFAULT_SP;
+      store_beer_temp_target(temp);
+  }
+
+  return temp;
+*/
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+boolean STORAGE::pause_state() {
+  if (!init_ran) {
+    init();
+  }
+
+  return beer_target;
+
+/* old code
   boolean state;
 
   EEPROM.get(16, state);
 
   return state;
+*/
 }
