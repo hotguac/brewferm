@@ -85,8 +85,8 @@
 
 // Indicator LED parameters
 // compare difference between target beer temp and actual
-#define INDICATE_OK     0.5 // if within this value, green LED on
-#define INDICATE_CLOSE  0.8 // if greater than INDICATOR_OK and less than this
+//#define INDICATE_OK     0.5 // if within this value, green LED on
+//#define INDICATE_CLOSE  0.8 // if greater than INDICATOR_OK and less than this
                             // turn on both green and red LEDs
                             // if greater than this turn on red LED
 
