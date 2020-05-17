@@ -112,7 +112,7 @@ void INDICATORS::setOutOfRange(float offset) {
 void INDICATORS::setStatus(float offset) {
     float a = abs(offset);
 
-    if (a < 0.5) {
+    if (a < 0.5) { //TODO: add defines in header
         setInTemp();
     } else if (a < 1.0) {
         setNearTemp();

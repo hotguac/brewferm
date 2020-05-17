@@ -58,9 +58,6 @@ private:
 
     uint32_t colors[MAX_COLOR_SEQ_SIZE];
     size_t colorCount;
-
-    //static const uint32_t colors[];
-    //static const size_t colorCount;
 };
 
 #endif  // INDICATORS_H_
