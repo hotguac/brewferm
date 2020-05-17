@@ -52,33 +52,34 @@ White Data -> yellow
 //#include "lib/OneWire/src/DS18.h"
 
 class SENSORS {
- public:
-    // Parameter types for some of the functions below
-    enum sensor_use { BEER = 0, CHAMBER = 1, AMBIENT = 2 };
-    const char *types[3] = {"2875857F08000063",
-                            "2874AD7F08000092",
-                            "0000000000000000"};
+   public:
+      // Parameter types for some of the functions below
+      enum sensor_use { BEER = 0, CHAMBER = 1, AMBIENT = 2 };
+      const char *types[3] = {"2875857F08000063",
+                              "2874AD7F08000092",
+                              "0000000000000000"};
 
-    const double beerF_calibrate = -1.9;
-    const double chamberF_calibrate = -1.5;
+      const double beerF_calibrate = -1.9;
+      const double chamberF_calibrate = -1.5;
 
-    SENSORS(void);
-    void refresh(void);
+      SENSORS(void);
+      void refresh(void);
 
 
-    sensor_use GetMode(void);
+      sensor_use GetMode(void);
 
-    void SetSampleTime(int);
+      void SetSampleTime(int);
 
-    double GetID(sensor_use);
-    double GetTempF(sensor_use);
-    void init(void);
+      double GetID(sensor_use);
+      double GetTempF(sensor_use);
+      void init(void);
 
- private:
-    void Initialize();
-    float beerF;
-    float chamberF;
-    float ambientF;
+
+   private:
+      void Initialize();
+      float beerF;
+      float chamberF;
+      float ambientF;
 
 
 };
