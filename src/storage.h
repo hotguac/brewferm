@@ -27,11 +27,10 @@
 #include "brewferm.h"
 
 #define STORAGE_DEF_NAME "BrewFerm\0"
-struct MySP {
-  char name[EEPROM_CHECK_SIZE];
-  double value;
-  boolean paused;
-};
+
+// EEPROM addresses
+#define EEPROM_SP_ADDR  4
+#define EEPROM_CHECK_SIZE  9
 
 class STORAGE {
  public:
@@ -44,13 +43,13 @@ class STORAGE {
     double beer_temp_target();
     boolean pause_state();
 
-    double beer_P();
-    double beer_I();
-    double beer_D();
+    double beerP();
+    double beerI();
+    double beerD();
 
-    double chamber_P();
-    double chamber_I();
-    double chamber_D();
+    double chamberP();
+    double chamberI();
+    double chamberD();
 
   private:
     void init(void);

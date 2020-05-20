@@ -108,9 +108,15 @@ void adjustChamberTempLimits(double sp) {
 // ----------------------------------
 // Initialize and prime beer temp PID
 // ----------------------------------
-void initBeerPID(void) {
+void initPID_loops(void) {
   // Init pid fields
-  beer_temp_target = DEFAULT_SP;
+  beerTempPID.SetTunings(myStorage.beerP(), myStorage.beerI(),
+      myStorage.beerD());
+
+  chamberTempPID.SetTunings(myStorage.chamberP(), myStorage.chamberI(),
+      myStorage.chamberD());
+
+  //beer_temp_target = DEFAULT_SP;
   beer_temp_target = myStorage.beer_temp_target();
   chamber_target_temp = beer_temp_target;
 
@@ -255,13 +261,6 @@ void run_calculations() {
 /* ---------------------------------------------------------------------------*/
 /* ---------------------------------------------------------------------------*/
 void control_HeatCool(void) {
-  /*
-  #define COOL_LIMIT1  10
-  #define COOL_LIMIT2  30
-  #define HEAT_LIMIT2  60
-  #define HEAT_LIMIT1  90
-  */
-
   if (cool_limit == COOL_LIMIT1) {
     if (control_signal > COOL_LIMIT2) {
       cool_limit = COOL_LIMIT2;
@@ -491,7 +490,7 @@ void setup() {
   delay(500);
 
   checkNetworking();
-  initBeerPID();
+  initPID_loops();
 
   paused = myStorage.pause_state();
 
@@ -551,8 +550,6 @@ void loop() {
     update_system_status();
     Particle.process();
 
-//src/BrewFerm.ino:572: undefined reference to `INDICATORS::setStatus(float)'
-//collect2: error: ld returned 1 exit status
     myIndicator.setStatus(beer_temp_actual - beer_temp_target);
 
     SetPace();

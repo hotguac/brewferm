@@ -90,10 +90,6 @@
                             // turn on both green and red LEDs
                             // if greater than this turn on red LED
 
-// EEPROM addresses
-#define EEPROM_SP_ADDR  4
-#define EEPROM_CHECK_SIZE  9
-
 // Sensor parameters
 #define UNKNOWN_TEMP -9.9
 
