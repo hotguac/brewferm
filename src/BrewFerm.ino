@@ -351,9 +351,11 @@ int setPause(String pause) {
     if (!pause.compareTo("YES")) {
       paused = true;
       myStorage.store_pause_state(true);
+      myIndicator.setPaused();
     } else if (!pause.compareTo("NO")) {
       paused = false;
       myStorage.store_pause_state(false);
+      myIndicator.setStatus(beer_temp_actual - beer_temp_target);
     } else {
       result = -1;
     }
@@ -526,6 +528,8 @@ void setup() {
 
   pinMode(D7, OUTPUT);
   digitalWrite(D7, LOW); // middle
+
+  myIndicator.init();
 }
 
 //---------------------------------------------------------------------------
@@ -543,6 +547,9 @@ void loop() {
       Particle.process();
       beerITerm = beerTempPID.GetITerm();
       chamberITerm = chamberTempPID.GetITerm();
+      myIndicator.setStatus(beer_temp_actual - beer_temp_target);
+    } else {
+      myIndicator.setPaused();
     }
 
     control_HeatCool();
@@ -550,10 +557,6 @@ void loop() {
 
     update_system_status();
     Particle.process();
-
-//src/BrewFerm.ino:572: undefined reference to `INDICATORS::setStatus(float)'
-//collect2: error: ld returned 1 exit status
-    myIndicator.setStatus(beer_temp_actual - beer_temp_target);
 
     SetPace();
 }
