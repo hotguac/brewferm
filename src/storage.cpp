@@ -20,7 +20,7 @@
 #include "storage.h"
 
 struct FermSettings {
-  uint8_t type;
+  uint32_t type;
 
   double beer_target;
 
@@ -36,50 +36,48 @@ struct FermSettings {
 };
 
 FermSettings settings;
-
+#define CURRENT_VERSION 0x11
 //----------------------------------------------------------------------------
-//
+// Read settings and check the type, copy and update and necesary
 //----------------------------------------------------------------------------
 void STORAGE::init(void) {
   init_ran = true;
 
   EEPROM.get(0, settings);
 
-  if (settings.type == 0x10) {
-    beer_P_value = settings.beerP;
-    beer_I_value = settings.beerI;
-    beer_D_value = settings.beerD;
+  switch (settings.type) {
+    case CURRENT_VERSION:
+      paused = settings.paused;
+      beer_target = settings.beer_target;
+      break;
 
-    chamber_P_value = settings.chamberP;
-    chamber_I_value = settings.chamberI;
-    chamber_D_value = settings.chamberD;
+    default:
+      settings.type = CURRENT_VERSION;
 
-    paused = settings.paused;
-    beer_target = settings.beer_target;
-  } else {
-    settings.type = 0x10;
+      settings.beer_target = 58.0;
+      settings.paused = true;
 
-    settings.beer_target = 64.0;
-    settings.paused = true;
+      settings.beerP = BEER_P_DEFAULT;
+      settings.beerI = BEER_I_DEFAULT;
+      settings.beerD = BEER_D_DEFAULT;
 
-    settings.beerP = BEER_P_DEFAULT;
-    settings.beerI = BEER_I_DEFAULT;
-    settings.beerP = BEER_P_DEFAULT;
+      settings.chamberP = CHAMBER_P_DEFAULT;
+      settings.chamberI = CHAMBER_I_DEFAULT;
+      settings.chamberD = CHAMBER_D_DEFAULT;
 
-    settings.chamberP = CHAMBER_P_DEFAULT;
-    settings.chamberI = CHAMBER_I_DEFAULT;
-    settings.chamberD = CHAMBER_D_DEFAULT;
+      paused = settings.paused;
+      beer_target = settings.beer_target;
+      break;
+    }
 
-    EEPROM.put(0, settings);
-  }
-
+  EEPROM.put(0, settings); // if no change no write occurs
 }
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
 void STORAGE::store_beer_temp_target(double sp) {
-  if (!init_ran) { init(); }
+  if (init_ran == false) { init(); }
   settings.beer_target = sp;
   EEPROM.put(0, settings);
 }
@@ -88,8 +86,30 @@ void STORAGE::store_beer_temp_target(double sp) {
 //
 //----------------------------------------------------------------------------
 void STORAGE::store_pause_state(boolean state) {
-  if (!init_ran) { init(); }
+  if (init_ran == false) { init(); }
   settings.paused = state;
+  EEPROM.put(0, settings);
+}
+
+void STORAGE::store_beer_pid(double p, double i, double d) {
+  if (init_ran == false) { init(); }
+
+  settings.beerP = p;
+  settings.beerI = i;
+  settings.beerD = d;
+  settings.type = CURRENT_VERSION;
+
+  EEPROM.put(0, settings);
+}
+
+void STORAGE::store_chamber_pid(double p, double i, double d) {
+  if (init_ran == false) { init(); }
+
+  settings.chamberP = p;
+  settings.chamberI = i;
+  settings.chamberD = d;
+  settings.type = CURRENT_VERSION;
+
   EEPROM.put(0, settings);
 }
 
@@ -97,7 +117,7 @@ void STORAGE::store_pause_state(boolean state) {
 //
 //----------------------------------------------------------------------------
 double STORAGE::beer_temp_target() {
-  if (!init_ran) { init(); }
+  if (init_ran == false) { init(); }
   return beer_target;
 }
 
@@ -105,36 +125,36 @@ double STORAGE::beer_temp_target() {
 //
 //----------------------------------------------------------------------------
 boolean STORAGE::pause_state() {
-  if (!init_ran) { init(); }
-  return beer_target;
+  if (init_ran == false) { init(); }
+  return settings.paused;
 }
 
 double STORAGE::beerP() {
-  if (!init_ran) { init(); }
-  return beer_P_value;
+  if (init_ran == false) { init(); }
+  return settings.beerP;
 }
 
 double STORAGE::beerI() {
-  if (!init_ran) { init(); }
-  return beer_I_value;
+  if (init_ran == false) { init(); }
+  return settings.beerI;
 }
 
 double STORAGE::beerD() {
-  if (!init_ran) { init(); }
-  return beer_D_value;
+  if (init_ran == false) { init(); }
+  return settings.beerD;
 }
 
 double STORAGE::chamberP() {
-  if (!init_ran) { init(); }
-  return chamber_P_value;
+  if (init_ran == false) { init(); }
+  return settings.chamberP;
 }
 
 double STORAGE::chamberI() {
-  if (!init_ran) { init(); }
-  return chamber_I_value;
+  if (init_ran == false) { init(); }
+  return settings.chamberI;
 }
 
 double STORAGE::chamberD() {
-  if (!init_ran) { init(); }
-  return chamber_D_value;
+  if (init_ran == false) { init(); }
+  return settings.chamberD;
 }

@@ -58,7 +58,7 @@
 #define MIN_COOL_HEAT    120   // seconds between turning cool off and heat on
 #define MIN_HEAT_OFF_ON  30    // seconds between turning heat off and heat on
 
-#define MIN_COOL_OFF_ON  360  // seconds between turning cool off and cool on
+#define MIN_COOL_OFF_ON  420  // seconds between turning cool off and cool on
                               // WARNING!!! this is a safety feature and shouldn't
                               // be less than 6 minutes (360 seconds) to keep from
                               // causing compressor damage; should only be

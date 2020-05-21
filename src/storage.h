@@ -59,14 +59,6 @@ class STORAGE {
     double beer_target = 64.0; //TODO: get default from brewferm.h
 
     boolean paused = true;
-
-    double beer_P_value = BEER_P_DEFAULT;
-    double beer_I_value = BEER_I_DEFAULT;
-    double beer_D_value = BEER_D_DEFAULT;
-
-    double chamber_P_value = CHAMBER_P_DEFAULT;
-    double chamber_I_value = CHAMBER_I_DEFAULT;
-    double chamber_D_value = CHAMBER_D_DEFAULT;
 };
 
 #endif  // STORAGE_H_
