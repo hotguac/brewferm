@@ -13,7 +13,7 @@ size_t init_colorCount =
     sizeof(init_colors[0]);
 
 // public functions
-CustomStatus customStatus(LED_PRIORITY_NORMAL);
+CustomStatus customStatus(LED_PRIORITY_IMPORTANT);
 
 void CustomStatus::setColors(uint32_t color_seq[], size_t count) {
     if (count <= MAX_COLOR_SEQ_SIZE) {

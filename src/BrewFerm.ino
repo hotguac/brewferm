@@ -351,9 +351,11 @@ int setPause(String pause) {
     if (!pause.compareTo("YES")) {
       paused = true;
       myStorage.store_pause_state(true);
+      myIndicator.setPaused();
     } else if (!pause.compareTo("NO")) {
       paused = false;
       myStorage.store_pause_state(false);
+      myIndicator.setStatus(beer_temp_actual - beer_temp_target);
     } else {
       result = -1;
     }
@@ -545,6 +547,9 @@ void loop() {
       Particle.process();
       beerITerm = beerTempPID.GetITerm();
       chamberITerm = chamberTempPID.GetITerm();
+      myIndicator.setStatus(beer_temp_actual - beer_temp_target);
+    } else {
+      myIndicator.setPaused();
     }
 
     control_HeatCool();
@@ -552,8 +557,6 @@ void loop() {
 
     update_system_status();
     Particle.process();
-
-    myIndicator.setStatus(beer_temp_actual - beer_temp_target);
 
     SetPace();
 }

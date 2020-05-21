@@ -21,7 +21,7 @@
 #define BREWFERM_H_
 
 // Uncomment this define to compile with simulated temp Sensors
-// #define RUN_SIMULATION 1
+#define RUN_SIMULATION 1
 
 // Controls how frequently the process loop runs
 // We slow it down because the temps don't change quickly
