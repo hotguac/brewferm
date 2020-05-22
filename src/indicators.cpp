@@ -42,6 +42,7 @@ void INDICATORS::setPaused(void) {
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2,
         IND_COLOR_PAUSED,
+        IND_COLOR_PAUSED,
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2
     };
@@ -58,6 +59,7 @@ void INDICATORS::setInTemp(void) {
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2,
         IND_COLOR_IN_TEMP,
+        IND_COLOR_IN_TEMP,
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2
     };
@@ -73,6 +75,7 @@ void INDICATORS::setNearTemp(void) {
     uint32_t nearTemp_colors[] = {
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2,
+        IND_COLOR_NEAR_TEMP,
         IND_COLOR_NEAR_TEMP,
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2
@@ -97,6 +100,7 @@ void INDICATORS::setOutOfRange(float offset) {
     uint32_t outOfRange_colors[] = {
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2,
+        out_color,
         out_color,
         IND_COLOR_PREAMBLE1,
         IND_COLOR_PREAMBLE2
