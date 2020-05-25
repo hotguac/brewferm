@@ -31,6 +31,8 @@
 #include "indicators.h"
 #include "jpid.h"
 
+#define RUN_SIMULATION
+
 int OTA_enabled;
 
 SENSORS mySensors;
@@ -44,6 +46,7 @@ String target_action("WAIT");
 String current_action("WAIT");
 
 String system_status;
+String system_tuning;
 
 time_t ts_lastSim;
 time_t ts_last_loop;
@@ -65,6 +68,14 @@ double beerITerm, chamberITerm;
 double uptime = 0.0;
 double cooltime = 0.0;
 double heattime = 0.0;
+
+double beerP;
+double beerI;
+double beerD;
+
+double chamberP;
+double chamberI;
+double chamberD;
 
 int ble_max_count = 0;
 String beaconMajor;
@@ -108,9 +119,20 @@ void adjustChamberTempLimits(double sp) {
 // ----------------------------------
 // Initialize and prime beer temp PID
 // ----------------------------------
-void initBeerPID(void) {
+void initPID_loops(void) {
   // Init pid fields
-  beer_temp_target = DEFAULT_SP;
+  beerP = myStorage.beerP();
+  beerI = myStorage.beerI();
+  beerD = myStorage.beerD();
+
+  chamberP = myStorage.chamberP();
+  chamberI = myStorage.chamberI();
+  chamberD = myStorage.chamberD();
+
+  beerTempPID.SetTunings(beerP, beerI, beerD);
+  chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+
+  //beer_temp_target = DEFAULT_SP;
   beer_temp_target = myStorage.beer_temp_target();
   chamber_target_temp = beer_temp_target;
 
@@ -136,7 +158,7 @@ void initBeerPID(void) {
 
   delay(30*1000);
   run_calculations();
-  update_system_status();
+  update_status();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -255,13 +277,6 @@ void run_calculations() {
 /* ---------------------------------------------------------------------------*/
 /* ---------------------------------------------------------------------------*/
 void control_HeatCool(void) {
-  /*
-  #define COOL_LIMIT1  10
-  #define COOL_LIMIT2  30
-  #define HEAT_LIMIT2  60
-  #define HEAT_LIMIT1  90
-  */
-
   if (cool_limit == COOL_LIMIT1) {
     if (control_signal > COOL_LIMIT2) {
       cool_limit = COOL_LIMIT2;
@@ -323,6 +338,127 @@ void control_HeatCool(void) {
 }
 
 /* ---------------------------------------------------------------------------*/
+// Cloud function to set beerPID 'P' value
+/* ---------------------------------------------------------------------------*/
+int setBeerP(String temp_P) {
+    int result = 0;
+    float temp = atof(temp_P); // returns 0.0 if atof fails
+
+    if (temp > 0.0) {
+      beerP = temp;
+      beerTempPID.SetTunings(beerP, beerI, beerD);
+      beerTempPID.SynchITerm();
+
+      myStorage.store_beer_pid(beerP, beerI, beerD);
+    } else {
+      result = -1;
+    }
+
+    return result;
+}
+
+/* ---------------------------------------------------------------------------*/
+// Cloud function to set beerPID 'I' value
+/* ---------------------------------------------------------------------------*/
+int setBeerI(String temp_I) {
+    int result = 0;
+    float temp = atof(temp_I); // returns 0.0 if atof fails
+
+    if (temp > 0.0) {
+      beerI = temp;
+      beerTempPID.SetTunings(beerP, beerI, beerD);
+      beerTempPID.SynchITerm();
+
+      myStorage.store_beer_pid(beerP, beerI, beerD);
+    } else {
+      result = -1;
+    }
+
+    return result;
+}
+
+/* ---------------------------------------------------------------------------*/
+// Cloud function to set beerPID 'D' value
+/* ---------------------------------------------------------------------------*/
+int setBeerD(String temp_D) {
+    int result = 0;
+    float temp = atof(temp_D); // returns 0.0 if atof fails
+
+    if (temp > 0.0) {
+      beerD = temp;
+      beerTempPID.SetTunings(beerP, beerI, beerD);
+      beerTempPID.SynchITerm();
+
+      myStorage.store_beer_pid(beerP, beerI, beerD);
+    } else {
+      result = -1;
+    }
+
+    return result;
+}
+
+
+/* ---------------------------------------------------------------------------*/
+// Cloud function to set chamberPID 'P' value
+/* ---------------------------------------------------------------------------*/
+int setChamberP(String temp_P) {
+    int result = 0;
+    float temp = atof(temp_P); // returns 0.0 if atof fails
+
+    if (temp > 0.0) {
+      chamberP = temp;
+      chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+      chamberTempPID.SynchITerm();
+
+      myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
+    } else {
+      result = -1;
+    }
+
+    return result;
+}
+
+/* ---------------------------------------------------------------------------*/
+// Cloud function to set chamberPID 'I' value
+/* ---------------------------------------------------------------------------*/
+int setChamberI(String temp_I) {
+    int result = 0;
+    float temp = atof(temp_I); // returns 0.0 if atof fails
+
+    if (temp > 0.0) {
+      chamberI = temp;
+      chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+      chamberTempPID.SynchITerm();
+
+      myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
+    } else {
+      result = -1;
+    }
+
+    return result;
+}
+
+/* ---------------------------------------------------------------------------*/
+// Cloud function to set chamberPID 'D' value
+/* ---------------------------------------------------------------------------*/
+int setChamberD(String temp_D) {
+    int result = 0;
+    float temp = atof(temp_D); // returns 0.0 if atof fails
+
+    if (temp > 0.0) {
+      chamberD = temp;
+      chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+      chamberTempPID.SynchITerm();
+
+      myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
+    } else {
+      result = -1;
+    }
+
+    return result;
+}
+
+/* ---------------------------------------------------------------------------*/
 // Cloud function to set target beer temp
 /* ---------------------------------------------------------------------------*/
 int setBeerTarget(String temp_target) {
@@ -367,47 +503,65 @@ int setPause(String pause) {
 // Build status string for reporting to the cloud
 /* ---------------------------------------------------------------------------*/
 #define MAX_DATA_SIZE 622
-void update_system_status() {
+void update_status() {
 
-    // get times in seconds to calc work
-    uptime = System.uptime();
-    cooltime = myRelays.get_cool_runtime();
-    heattime = myRelays.get_heat_runtime();
+  // start with system_status ----
+  // get times in seconds to calc work
+  uptime = System.uptime();
+  cooltime = myRelays.get_cool_runtime();
+  heattime = myRelays.get_heat_runtime();
 
-    percent_cool = (cooltime / uptime) * 100.0;
-    percent_heat = (heattime / uptime) * 100.0;
+  percent_cool = (cooltime / uptime) * 100.0;
+  percent_heat = (heattime / uptime) * 100.0;
 
-    char buffer[MAX_DATA_SIZE];
-    memset(buffer, 0, sizeof(buffer));
+  char buffer[MAX_DATA_SIZE];
+  memset(buffer, 0, sizeof(buffer));
 
-    snprintf(buffer, sizeof(buffer),
-      "|BT:%4.1f|BA:%4.1f|CT:%4.1f|CA:%4.1f|CS:%4.1f|PH:%4.1f|PC:%4.1f|BI:%4.1f|CI:%4.1f|SG:%5.3f|end",
-        beer_temp_target,
-        beer_temp_actual,
-        chamber_target_temp,
-        chamber_temp_actual,
-        chamber_pid_out,
-        percent_heat,
-        percent_cool,
-        beerTempPID.GetITerm(),
-        chamberTempPID.GetITerm(),
-        tilt_sg
-        );
+  snprintf(buffer, sizeof(buffer),
+    "|BT:%4.1f|BA:%4.1f|CT:%4.1f|CA:%4.1f|CS:%4.1f|PH:%4.1f|PC:%4.1f|BI:%4.1f|CI:%4.1f|SG:%5.3f|end",
+      beer_temp_target,
+      beer_temp_actual,
+      chamber_target_temp,
+      chamber_temp_actual,
+      chamber_pid_out,
+      percent_heat,
+      percent_cool,
+      beerTempPID.GetITerm(),
+      chamberTempPID.GetITerm(),
+      tilt_sg
+      );
 
-    system_status.remove(0);
-    system_status.concat("TA:");
-    system_status.concat(target_action);
-    system_status.concat("|CA:");
-    system_status.concat(current_action);
-    system_status.concat(buffer);
+  system_status.remove(0);
+  system_status.concat("TA:");
+  system_status.concat(target_action);
+  system_status.concat("|CA:");
+  system_status.concat(current_action);
+  system_status.concat(buffer);
 
-    if ((Time.now() - ts_last_publish) > SEND_STATUS_INTERVAL) {
-      if (Particle.connected()) {
-        Particle.publish("SystemStatus", system_status, PRIVATE);
-        ts_last_publish = Time.now();
-      }
+  if ((Time.now() - ts_last_publish) > SEND_STATUS_INTERVAL) {
+    if (Particle.connected()) {
+      Particle.publish("SystemStatus", system_status, PRIVATE);
+      ts_last_publish = Time.now();
     }
-}
+  }
+
+  // reset and do tuning status
+  memset(buffer, 0, sizeof(buffer));
+  snprintf(buffer, sizeof(buffer),
+    "|BP:%4.2f|BI:%1.4f|BD:%1.4f|CP:%4.2f|CI:%1.4f|CD:%1.4f|end",
+      beerP,
+      beerI,
+      beerD,
+      chamberP,
+      chamberI,
+      chamberD
+      );
+
+  system_tuning.remove(0);
+  system_tuning.concat(buffer);
+
+} // end of update_status ----------------------------------------
+
 
 #if Wiring_BLE
 /* example packet
@@ -477,10 +631,19 @@ void check_bluetooth() {
 //---------------------------------------------------------------------------
 void setup() {
   Particle.variable("SystemStatus", system_status);
+  Particle.variable("TuningStatus", system_tuning);
   Particle.variable("Uptime", uptime);
 
   Particle.function("setBeerTarget", setBeerTarget);
   Particle.function("setPauseState", setPause);
+
+  Particle.function("setBeerP", setBeerP);
+  Particle.function("setBeerI", setBeerI);
+  Particle.function("setBeerD", setBeerD);
+
+  Particle.function("setChamberP", setChamberP);
+  Particle.function("setChamberI", setChamberI);
+  Particle.function("setChamberD", setChamberD);
 
   // Always expose these, just may not be valid values
   Particle.variable("bleDeviceCount", ble_max_count);
@@ -493,7 +656,7 @@ void setup() {
   delay(500);
 
   checkNetworking();
-  initBeerPID();
+  initPID_loops();
 
   paused = myStorage.pause_state();
 
@@ -555,8 +718,10 @@ void loop() {
     control_HeatCool();
     Particle.process();
 
-    update_system_status();
+    update_status();
     Particle.process();
+
+    myIndicator.setStatus(beer_temp_actual - beer_temp_target);
 
     SetPace();
 }
