@@ -27,24 +27,38 @@
 #include "brewferm.h"
 
 #define STORAGE_DEF_NAME "BrewFerm\0"
-struct MySP {
-  char name[EEPROM_CHECK_SIZE];
-  double value;
-  boolean paused;
-};
+
+// EEPROM addresses
+#define EEPROM_SP_ADDR  4
+#define EEPROM_CHECK_SIZE  9
 
 class STORAGE {
  public:
   // commonly used functions
     void store_beer_temp_target(double sp);
-    double retrieve_beer_temp_target();
     void store_pause_state(boolean state);
-    boolean retrieve_pause_state();
+    void store_beer_pid(double p, double i, double d);
+    void store_chamber_pid(double p, double i, double d);
 
-   // STORAGE(void);
+    double beer_temp_target();
+    boolean pause_state();
 
- //private:
-    //MySP mySP;
+    double beerP();
+    double beerI();
+    double beerD();
+
+    double chamberP();
+    double chamberI();
+    double chamberD();
+
+  private:
+    void init(void);
+    boolean init_ran = false;
+
+  // stored values
+    double beer_target = 64.0; //TODO: get default from brewferm.h
+
+    boolean paused = true;
 };
 
 #endif  // STORAGE_H_

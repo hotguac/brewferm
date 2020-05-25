@@ -21,7 +21,7 @@
 #define BREWFERM_H_
 
 // Uncomment this define to compile with simulated temp Sensors
-// #define RUN_SIMULATION 1
+#define RUN_SIMULATION 1
 
 // Controls how frequently the process loop runs
 // We slow it down because the temps don't change quickly
@@ -36,14 +36,14 @@
 #define RED_PIN   D3 // D1
 
 // The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
-#define BEER_P  3.2 // 2.6 // 1.8 1.6 1.5 1.0 0.8 0.6
-#define BEER_I  0.00010 // 0.00007 // 0.00006 0.00005 // 0.00004 0.00008 0.000125 0.0005
-#define BEER_D  0.0 // 1.0
+#define BEER_P_DEFAULT  3.2 // 2.6
+#define BEER_I_DEFAULT  0.00010 // 0.00007
+#define BEER_D_DEFAULT  0.0 // 1.0
 
 // The Chamber PID parameters; known good values P 4; I 0.04; D 1.25
-#define CHAMBER_P  4 // 4
-#define CHAMBER_I  0.01 // 0.04
-#define CHAMBER_D  0.0 // 1.25
+#define CHAMBER_P_DEFAULT  4 // 4
+#define CHAMBER_I_DEFAULT  0.01 // 0.04
+#define CHAMBER_D_DEFAULT  0.0 // 1.25
 
 // Tempature control parameters
 // These work with the output of the chamber PID controller
@@ -58,7 +58,7 @@
 #define MIN_COOL_HEAT    120   // seconds between turning cool off and heat on
 #define MIN_HEAT_OFF_ON  30    // seconds between turning heat off and heat on
 
-#define MIN_COOL_OFF_ON  360  // seconds between turning cool off and cool on
+#define MIN_COOL_OFF_ON  420  // seconds between turning cool off and cool on
                               // WARNING!!! this is a safety feature and shouldn't
                               // be less than 6 minutes (360 seconds) to keep from
                               // causing compressor damage; should only be
@@ -85,14 +85,10 @@
 
 // Indicator LED parameters
 // compare difference between target beer temp and actual
-#define INDICATE_OK     0.5 // if within this value, green LED on
-#define INDICATE_CLOSE  0.8 // if greater than INDICATOR_OK and less than this
+//#define INDICATE_OK     0.5 // if within this value, green LED on
+//#define INDICATE_CLOSE  0.8 // if greater than INDICATOR_OK and less than this
                             // turn on both green and red LEDs
                             // if greater than this turn on red LED
-
-// EEPROM addresses
-#define EEPROM_SP_ADDR  4
-#define EEPROM_CHECK_SIZE  9
 
 // Sensor parameters
 #define UNKNOWN_TEMP -9.9
