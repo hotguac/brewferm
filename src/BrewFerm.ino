@@ -24,7 +24,7 @@
 #include "math.h"
 
 /* Includes ---- application -------------------------------------------------*/
-#include "brewferm.h"
+#include "brewferm.h"2197163f8ce37212d6e5d8985efc605e2aa5c377
 #include "sensors.h"
 #include "relays.h"
 #include "storage.h"
@@ -210,6 +210,8 @@ void read_sensors() {
 // Temps change slowly so we don't want to feed PID to frequently
 /* ---------------------------------------------------------------------------*/
 void SetPace(void) {
+  digitalWrite(LED_PIN, 1); // give visual feedback on how long we delay
+
   ts_next_loop = ts_last_loop + MIN_LOOP_TIME;
   ts_now = Time.now();
 
@@ -217,6 +219,7 @@ void SetPace(void) {
     delay((ts_next_loop - ts_now) * 1000);
   }
 
+  digitalWrite(LED_PIN, 0);
   ts_last_loop = Time.now();
 }
 

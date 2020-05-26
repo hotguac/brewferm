@@ -21,7 +21,7 @@
 #define BREWFERM_H_
 
 // Uncomment this define to compile with simulated temp Sensors
-#define RUN_SIMULATION 1
+// #define RUN_SIMULATION 1
 
 // Controls how frequently the process loop runs
 // We slow it down because the temps don't change quickly
@@ -30,10 +30,8 @@
 #define CHAMBER_SAMPLETIME 24 // Compute interval in seconds
 #define SEND_STATUS_INTERVAL 1200 // 1200 // in seconds
 
-// What pins are wired to what
-#define LED_PIN   D3 // D7
-#define GREEN_PIN D3 // D0
-#define RED_PIN   D3 // D1
+// This is the built-in 'user' single color LED
+#define LED_PIN   D7
 
 // The Beer PID parameters; known good values P 0.6; I 0.0005; D 1.0
 #define BEER_P_DEFAULT  3.2 // 2.6

@@ -24,10 +24,11 @@
 #include <string>
 
 #define BUFF_SIZE 2048
+#define MAX_SENSORS 6
 
-const int nSENSORS = 2;
-retained uint8_t sensorAddresses[nSENSORS][8];
-float celsius[nSENSORS] = {NAN, NAN};
+int num_sensors;
+retained uint8_t sensorAddresses[MAX_SENSORS][8];
+float celsius[MAX_SENSORS] = {NAN, NAN, NAN, NAN, NAN, NAN};
 
 // #############################
 const int16_t dsData = A4; // D3;
@@ -35,7 +36,7 @@ DS18B20 sensor(dsData);
 // #############################
 
 //---------------------------------------------------------------------------
-//
+// We haven't established the sensors or temps at this point
 //---------------------------------------------------------------------------
 SENSORS::SENSORS(void) {
   beerF = UNKNOWN_TEMP;
@@ -49,9 +50,16 @@ SENSORS::SENSORS(void) {
 void SENSORS::init(void) {
   sensor.resetsearch();                 // initialise for sensor search
 
-  for (int i = 0; i < nSENSORS; i++) {   // try to read the sensor addresses
-    sensor.search(sensorAddresses[i]); // and if available store
-  }
+  boolean found = false;
+  int i = 0;
+
+  do {
+    found = sensor.search(sensorAddresses[i++]); // and if available store
+    if (found) {
+      num_sensors = i;
+    }
+  } while ((found == true) && (i < MAX_SENSORS));
+
 }
 
 const int MAXRETRY = 3;
@@ -62,7 +70,10 @@ double getTemp(uint8_t addr[8]) {
 
   do {
     _temp = sensor.getTemperature(addr);
-  } while (!sensor.crcCheck() && MAXRETRY > i++);
+    if (!sensor.crcCheck()) {
+      delay(200); // wait and try again
+    }
+  } while ((!sensor.crcCheck()) && (MAXRETRY > i++));
 
   if (i < MAXRETRY) {
     Serial.printf("address = %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
@@ -79,14 +90,14 @@ double getTemp(uint8_t addr[8]) {
 }
 
 //---------------------------------------------------------------------------
-//
+// loop through sensors found in init() and store retrieved temps
 //---------------------------------------------------------------------------
 void SENSORS::refresh(void) {
   // Read the next available 1-Wire temperature sensor
 
   char buffer[BUFF_SIZE];
 
-  for (int i = 0; i < nSENSORS; i++) {
+  for (int i = 0; i < num_sensors; i++) {
     float temp = getTemp(sensorAddresses[i]);
 
     if (!isnan(temp)) {
@@ -108,11 +119,12 @@ void SENSORS::refresh(void) {
         ambientF = sensor.convertToFahrenheit(temp);
       }
     }
+    delay(200); // give plenty of time for sensors to reset
   }
 }
 
 //---------------------------------------------------------------------------
-//
+// This returns the last temp found in the refresh() function
 //---------------------------------------------------------------------------
 double SENSORS::GetTempF(sensor_use mode) {
   if (mode == BEER) {
