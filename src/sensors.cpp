@@ -15,7 +15,7 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this program; if not, see <http://www.gnu.org/licenses/>.
   ******************************************************************************
- */
+*/
 
 // Controls the sensors
 #include "brewferm.h"
@@ -23,15 +23,10 @@
 
 #include <string>
 
-#define BUFF_SIZE 2048
-#define MAX_SENSORS 6
-
-int num_sensors;
-retained uint8_t sensorAddresses[MAX_SENSORS][8];
-float celsius[MAX_SENSORS] = {NAN, NAN, NAN, NAN, NAN, NAN};
+//#define BUFF_SIZE 2048
 
 // #############################
-const int16_t dsData = A4; // D3;
+const int16_t dsData = SENSOR_PIN;
 DS18B20 sensor(dsData);
 // #############################
 
@@ -39,101 +34,237 @@ DS18B20 sensor(dsData);
 // We haven't established the sensors or temps at this point
 //---------------------------------------------------------------------------
 SENSORS::SENSORS(void) {
-  beerF = UNKNOWN_TEMP;
-  chamberF = UNKNOWN_TEMP;
-  ambientF = UNKNOWN_TEMP;
+    beerF = UNKNOWN_TEMP;
+    chamberF = UNKNOWN_TEMP;
+    ambientF = UNKNOWN_TEMP;
 }
 
 //---------------------------------------------------------------------------
 //TODO: change to detect how many sensors connected instead of assuming two
+//
+// This routine scans for attached sensors and stores their addresses.
 //---------------------------------------------------------------------------
-void SENSORS::init(void) {
-  sensor.resetsearch();                 // initialise for sensor search
+void SENSORS::init() {
+    Serial.print("starting sensor init ");
 
-  boolean found = false;
-  int i = 0;
+    sensor.resetsearch();                 // initialise for sensor search
 
-  do {
-    found = sensor.search(sensorAddresses[i++]); // and if available store
-    if (found) {
-      num_sensors = i;
-    }
-  } while ((found == true) && (i < MAX_SENSORS));
+    boolean found = false;
+    int i = 0;
+    num_sensors = 0;
 
+    do {
+        found = sensor.search(sensorAddresses[i++]); // and if available store
+        if (found) {
+            num_sensors = i;
+        }
+    } while ((found == true) && (i < MAX_SENSORS));
+
+    Serial.printlnf("found %d sensors", num_sensors);
+
+    Particle.process();
 }
 
-const int MAXRETRY = 3;
+//---------------------------------------------------------------------------
+// This routine waits for a new sensor to show up in the scan and
+// then assigns it the role of beer sensor and updates the addresss.
+//---------------------------------------------------------------------------
+boolean SENSORS::assign_beer_sensor(uint8_t addr[8]) {
+    boolean found = false;
 
-double getTemp(uint8_t addr[8]) {
-  double _temp;
-  int   i = 0;
+    int try_count = 20;
+    int i = 0;
 
-  do {
-    _temp = sensor.getTemperature(addr);
-    if (!sensor.crcCheck()) {
-      delay(200); // wait and try again
+    Serial.println("starting check for beer sensor");
+
+    do {
+        init(); //scans for attached sensors
+
+        if (num_sensors == 1) {
+            memcpy(sensorBeer, sensorAddresses[0], sizeof(uint8_t) * 8);
+            memcpy(addr, sensorAddresses[0], sizeof(uint8_t) * 8);
+            found = true;
+        } else {
+            delay(5000);
+            Serial.printlnf("... currently %d sensors attached", num_sensors);
+            Serial.println("... waiting for beer sensor to be attached");
+        }
+
+    } while ((found == false) && (i < try_count));
+
+    return found;
+}
+
+#define ADDRESS_SIZE (sizeof(uint8_t) * 8)
+//---------------------------------------------------------------------------
+// This routine waits for a new sensor to show up in the scan and
+// then assigns it the role of beer sensor and updates the addresss.
+//---------------------------------------------------------------------------
+boolean SENSORS::assign_chamber_sensor(uint8_t addr[8]) {
+    boolean found = false;
+
+    int try_count = 20;
+    int i = 0;
+
+    Serial.println("---");
+    Serial.println("starting check for chamber sensor");
+
+    do {
+        init(); //scans for attached sensors
+
+        if (num_sensors == 2) { // beer sensor should already be configured
+            if (memcmp(sensorBeer, sensorAddresses[0], ADDRESS_SIZE) == 0) {
+                Serial.println("Sensor 0 is beer, assigning sensor 1");
+                memcpy(sensorChamber, sensorAddresses[1], ADDRESS_SIZE);
+                memcpy(addr, sensorAddresses[1], ADDRESS_SIZE);
+                found = true;
+            } else {
+                memcpy(sensorChamber, sensorAddresses[0], ADDRESS_SIZE);
+                memcpy(addr, sensorAddresses[0], ADDRESS_SIZE);
+                found = true;
+            }
+
+        } else {
+            delay(5000);
+            Serial.println("... waiting for chamber sensor to be attached");
+        }
+
+    } while ((found == false) && (i++ < try_count));
+
+    return found;
+}
+
+//---------------------------------------------------------------------------
+// during the sensor assign process need to start with no sensors attached
+//---------------------------------------------------------------------------
+void SENSORS::wait_for_no_sensors() {
+    boolean found = false;
+
+    do {
+        init();
+        Serial.printlnf("Waiting for zero sensors, found %d", num_sensors);
+        delay(2000);
+    } while (num_sensors != 0);
+}
+
+//---------------------------------------------------------------------------
+// The address of the sensor previously assigned to be the beer sensor is
+// passed in. The function checks to see if that sensor responds to queries.
+//---------------------------------------------------------------------------
+boolean SENSORS::beer_sensor_attached(uint8_t addr[8]) {
+    boolean found = false;
+
+    Serial.print("Checking for beer sensor at addres ");
+    Serial.printf(" %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
+        addr[0], addr[1], addr[2], addr[3],
+        addr[4], addr[5], addr[6], addr[7]);
+
+    memcpy(sensorBeer, addr, sizeof(uint8_t) * 8);
+
+    if (!isnan(getTemp(sensorBeer))) {
+        found = true;
     }
-  } while ((!sensor.crcCheck()) && (MAXRETRY > i++));
 
-  if (i < MAXRETRY) {
+    return found;
+}
+
+//---------------------------------------------------------------------------
+// Stores the passed in sensor address as the chamber sensor and then
+// validates that it responds to queries
+//---------------------------------------------------------------------------
+boolean SENSORS::chamber_sensor_attached(uint8_t addr[8]) {
+    boolean found = false;
+
+    Serial.println("starting check for chamber sensor at address ");
+    Serial.printf(" %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
+        addr[0], addr[1], addr[2], addr[3],
+        addr[4], addr[5], addr[6], addr[7]);
+
+    memcpy(sensorChamber, addr, sizeof(uint8_t) * 8);
+
+    if (!isnan(getTemp(sensorBeer))) {
+        found = true;
+    }
+
+    return found;
+}
+
+//---------------------------------------------------------------------------
+// Query a specific tempature sensor address
+//---------------------------------------------------------------------------
+double SENSORS::getTemp(uint8_t addr[8]) {
+    double _temp;
+    const int MAXRETRY = 3;
+    int i = 0;
+
     Serial.printf("address = %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
         addr[0], addr[1], addr[2], addr[3],
         addr[4], addr[5], addr[6], addr[7]);
-    Serial.println(_temp);
-  }
-  else {
-    _temp = NAN;
-    Serial.println("Invalid reading");
-  }
 
-  return _temp;
+    do {
+        _temp = sensor.getTemperature(addr);
+        if (!sensor.crcCheck()) {
+            delay(200); // wait and try again
+        }
+    } while ((!sensor.crcCheck()) && (MAXRETRY > i++));
+
+    if (i < MAXRETRY) {
+        Serial.println(_temp);
+    }
+    else {
+        _temp = NAN;
+        Serial.println("Invalid reading");
+    }
+
+    return _temp;
 }
 
 //---------------------------------------------------------------------------
-// loop through sensors found in init() and store retrieved temps
+// Query all sensors and store value
 //---------------------------------------------------------------------------
 void SENSORS::refresh(void) {
-  // Read the next available 1-Wire temperature sensor
+    Serial.println("Sensor refresh");
 
-  char buffer[BUFF_SIZE];
-
-  for (int i = 0; i < num_sensors; i++) {
-    float temp = getTemp(sensorAddresses[i]);
-
+    float temp;
+    temp = getTemp(sensorBeer);
     if (!isnan(temp)) {
-      celsius[i] = temp;
-
-      // convert address to hex string
-      snprintf(buffer, BUFF_SIZE,
-        "%02X%02X%02X%02X%02X%02X%02X%02X",
-        sensorAddresses[i][0], sensorAddresses[i][1],
-        sensorAddresses[i][2], sensorAddresses[i][3],
-        sensorAddresses[i][4], sensorAddresses[i][5],
-        sensorAddresses[i][6], sensorAddresses[i][7]);
-
-      if (strcmp(types[BEER], buffer) == 0) {
-        beerF = sensor.convertToFahrenheit(temp) + beerF_calibrate;
-      } else if (strcmp(types[CHAMBER], buffer) == 0) {
-        chamberF = sensor.convertToFahrenheit(temp) + chamberF_calibrate;
-      } else if (strcmp(types[AMBIENT], buffer) == 0) {
-        ambientF = sensor.convertToFahrenheit(temp);
-      }
+        beerF = sensor.convertToFahrenheit(temp);
     }
+
     delay(200); // give plenty of time for sensors to reset
-  }
+
+    temp = getTemp(sensorChamber);
+    if (!isnan(temp)) {
+        chamberF = sensor.convertToFahrenheit(temp);
+    }
+
+    delay(200); // give plenty of time for sensors to reset
+
+    temp = getTemp(sensorAmbient);
+    if (!isnan(temp)) {
+        ambientF = sensor.convertToFahrenheit(temp);
+    }
+
+    Particle.process();
 }
 
 //---------------------------------------------------------------------------
 // This returns the last temp found in the refresh() function
 //---------------------------------------------------------------------------
-double SENSORS::GetTempF(sensor_use mode) {
-  if (mode == BEER) {
+double SENSORS::GetBeerF() {
     return beerF;
-  } else if (mode == CHAMBER) {
-    return chamberF;
-  } else if (mode == AMBIENT) {
-    return ambientF;
-  }
+}
 
-  return UNKNOWN_TEMP;
+//---------------------------------------------------------------------------
+// This returns the last temp found in the refresh() function
+//---------------------------------------------------------------------------
+double SENSORS::GetChamberF() {
+    return chamberF;
+}
+
+//---------------------------------------------------------------------------
+// This returns the last temp found in the refresh() function
+//---------------------------------------------------------------------------
+double SENSORS::GetAmbientF() {
+    return ambientF;
 }

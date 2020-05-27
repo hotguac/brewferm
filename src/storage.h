@@ -28,10 +28,6 @@
 
 #define STORAGE_DEF_NAME "BrewFerm\0"
 
-// EEPROM addresses
-#define EEPROM_SP_ADDR  4
-#define EEPROM_CHECK_SIZE  9
-
 class STORAGE {
  public:
   // commonly used functions
@@ -50,6 +46,12 @@ class STORAGE {
     double chamberP();
     double chamberI();
     double chamberD();
+
+    void getBeerSensorAddr(uint8_t addr[8]);
+    void getChamberSensorAddr(uint8_t addr[8]);
+
+    void store_beer_sensor_addr(uint8_t addr[8]);
+    void store_chamber_sensor_addr(uint8_t addr[8]);
 
   private:
     void init(void);
