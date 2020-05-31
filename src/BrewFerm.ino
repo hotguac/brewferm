@@ -31,7 +31,7 @@
 #include "indicators.h"
 #include "jpid.h"
 
-#define RUN_SIMULATION
+//#define RUN_SIMULATION  // Uncomment to compile with simulated temp Sensors
 
 int OTA_enabled;
 
@@ -91,7 +91,7 @@ int ble_device_count = 0;
 #endif
 
 PID beerTempPID(&beer_temp_actual, &beer_pid_out, &beer_temp_target,
-  BEER_P_DEFAULT, BEER_I_DEFAULT, BEER_D_DEFAULT, PID::DIRECT);
+    BEER_P_DEFAULT, BEER_I_DEFAULT, BEER_D_DEFAULT, PID::DIRECT);
 
 PID chamberTempPID(&chamber_temp_actual, &chamber_pid_out, &chamber_target_temp,
     CHAMBER_P_DEFAULT, CHAMBER_I_DEFAULT, CHAMBER_D_DEFAULT, PID::DIRECT);
@@ -105,60 +105,71 @@ INDICATORS myIndicator;
 //   which in our case will be our target fermentation chamber temperature
 /* ---------------------------------------------------------------------------*/
 void adjustChamberTempLimits(double sp) {
-  if (sp > FERM_CRASH_SPLIT) {
-    // We're still in fermentation mode
-    beerTempPID.SetOutputLimits(sp - LIMIT_RANGE_LOW, sp + LIMIT_RANGE_HIGH);
-  } else {
-    // We're cold crashing now
-    beerTempPID.SetOutputLimits(MIN_OUTPUT_TEMP, sp + LIMIT_RANGE_HIGH);
-  }
+    if (sp > FERM_CRASH_SPLIT) {
+        // We're still in fermentation mode
+        beerTempPID.SetOutputLimits(sp - LIMIT_RANGE_LOW, sp + LIMIT_RANGE_HIGH);
+    } else {
+        // We're cold crashing now
+        beerTempPID.SetOutputLimits(MIN_OUTPUT_TEMP, sp + LIMIT_RANGE_HIGH);
+    }
 
-  chamberTempPID.SetOutputLimits(1, 99);
+    chamberTempPID.SetOutputLimits(1, 99);
 }
 
 // ----------------------------------
 // Initialize and prime beer temp PID
 // ----------------------------------
 void initPID_loops(void) {
-  // Init pid fields
-  beerP = myStorage.beerP();
-  beerI = myStorage.beerI();
-  beerD = myStorage.beerD();
+    // these are fake values for test when no sensors attached
+    fake_beer_temp = 64.7;
+    fake_chamber_temp = 70.0;
 
-  chamberP = myStorage.chamberP();
-  chamberI = myStorage.chamberI();
-  chamberD = myStorage.chamberD();
+    cool_limit = COOL_LIMIT2;
+    heat_limit = HEAT_LIMIT2;
 
-  beerTempPID.SetTunings(beerP, beerI, beerD);
-  chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+    // initialize variables controlling timing base actions
+    ts_lastSim = Time.now();
+    ts_last_loop = ts_lastSim - 200; // pretend we last looped 200 seconds ago
+    ts_last_publish = ts_last_loop;
 
-  //beer_temp_target = DEFAULT_SP;
-  beer_temp_target = myStorage.beer_temp_target();
-  chamber_target_temp = beer_temp_target;
+    // Init pid fields
+    beerP = myStorage.beerP();
+    beerI = myStorage.beerI();
+    beerD = myStorage.beerD();
 
-  // use dummy values for now, they'll update first time
-  // we read sensors
-  beer_temp_actual = beer_temp_target; // 60.0; // 5/7/2020
-  chamber_temp_actual = beer_temp_target; // 60.0;
+    chamberP = myStorage.chamberP();
+    chamberI = myStorage.chamberI();
+    chamberD = myStorage.chamberD();
 
-  // Turn on pid
-  beerTempPID.SetMode(PID::AUTOMATIC);
-  beerTempPID.SetSampleTime(BEER_SAMPLETIME*1000);
+    beerTempPID.SetTunings(beerP, beerI, beerD);
+    chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
 
-  chamberTempPID.SetMode(PID::AUTOMATIC);
-  chamberTempPID.SetSampleTime(CHAMBER_SAMPLETIME*1000);
+    //beer_temp_target = DEFAULT_SP;
+    beer_temp_target = myStorage.beer_temp_target();
+    chamber_target_temp = beer_temp_target;
 
-  control_signal = 50;
+    // use dummy values for now, they'll update first time
+    // we read sensors
+    beer_temp_actual = beer_temp_target; // 60.0; // 5/7/2020
+    chamber_temp_actual = beer_temp_target; // 60.0;
 
-  adjustChamberTempLimits(beer_temp_target);
+    // Turn on pid
+    beerTempPID.SetMode(PID::AUTOMATIC);
+    beerTempPID.SetSampleTime(BEER_SAMPLETIME*1000);
 
-  // beerTempPID.Initialize(beer_temp_actual);
-  beerTempPID.Initialize(beer_temp_target); // 5/7/2020
-  chamberTempPID.Initialize(50.0); // this isn't a temp but a control signal
+    chamberTempPID.SetMode(PID::AUTOMATIC);
+    chamberTempPID.SetSampleTime(CHAMBER_SAMPLETIME*1000);
 
-  delay(30*1000);
-  run_calculations();
-  update_status();
+    control_signal = 50;
+
+    adjustChamberTempLimits(beer_temp_target);
+
+    beerTempPID.Initialize(beer_temp_target); // 5/7/2020
+    chamberTempPID.Initialize(50.0); // this isn't a temp but a control signal
+
+    delay(10*1000);
+    run_calculations();
+    update_status();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -167,20 +178,22 @@ void initPID_loops(void) {
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
 
 void checkNetworking(void) {
-  if (!Particle.connected()) {
-    WiFi.on();
-    Particle.connect();
-  }
+    if (!Particle.connected()) {
+        WiFi.on();
+        Particle.connect();
+    }
 
-  if (Particle.timeSyncedLast() > ONE_DAY_MILLIS) {
-    Particle.syncTime();
-  }
+    if (Particle.timeSyncedLast() > ONE_DAY_MILLIS) {
+        Particle.syncTime();
+    }
 
-  OTA_enabled = System.updatesEnabled();
+    OTA_enabled = System.updatesEnabled();
 
-  if (!OTA_enabled) {
-    System.enableUpdates();
-  }
+    if (!OTA_enabled) {
+        System.enableUpdates();
+    }
+
+    Particle.process();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -188,28 +201,30 @@ void checkNetworking(void) {
 /* ---------------------------------------------------------------------------*/
 void read_sensors() {
 
-  mySensors.refresh();
+    mySensors.refresh();
 
     // Apply low pass filters to the temperature sensors to eliminate
-  // noise, the temps change slowly so we're Okay with a slow change
-  // rate on the temp readings. Chamber changes quicker than beer, so
-  // it gets a high alpha parameter.
+    // noise, the temps change slowly so we're Okay with a slow change
+    // rate on the temp readings. Chamber changes quicker than beer, so
+    // it gets a high alpha parameter.
 
-  chamber_temp_actual += 0.99 * (mySensors.GetTempF(SENSORS::CHAMBER) -
-                                  chamber_temp_actual);
+    chamber_temp_actual += 0.95 * (mySensors.GetChamberF() - chamber_temp_actual);
 
-  beer_temp_actual += 0.99 * (mySensors.GetTempF(SENSORS::BEER) -
-                               beer_temp_actual);
+    beer_temp_actual += 0.90 * (mySensors.GetBeerF() - beer_temp_actual);
 
 #if Wiring_BLE
     check_bluetooth();
 #endif
+
+    Particle.process();
 }
 
 /* ---------------------------------------------------------------------------*/
 // Temps change slowly so we don't want to feed PID to frequently
 /* ---------------------------------------------------------------------------*/
 void SetPace(void) {
+  digitalWrite(HEARTBEAT_PIN, 1); // give visual feedback on how long we delay
+
   ts_next_loop = ts_last_loop + MIN_LOOP_TIME;
   ts_now = Time.now();
 
@@ -217,6 +232,7 @@ void SetPace(void) {
     delay((ts_next_loop - ts_now) * 1000);
   }
 
+  digitalWrite(HEARTBEAT_PIN, 0);
   ts_last_loop = Time.now();
 }
 
@@ -224,82 +240,85 @@ void SetPace(void) {
 //
 /* ---------------------------------------------------------------------------*/
 void run_calculations() {
-  // this is just for testing without any sensors attached
-  // we'll fake the beer temp moving towards the chamber temp and
-  // the chamber temp moving towards chamber target temp
+    // this is just for testing without any sensors attached
+    // we'll fake the beer temp moving towards the chamber temp and
+    // the chamber temp moving towards chamber target temp
 
 #ifdef RUN_SIMULATION
-  /* Actual value's from my plant
+    /* Actual value's from my plant
 
-  Observed heating rate when ambient temp is low 30's F was 0.1F/minute
-  Observed cooling rate when ambient temp is low 30's F was 0.6F/minute
+    Observed heating rate when ambient temp is low 30's F was 0.1F/minute
+    Observed cooling rate when ambient temp is low 30's F was 0.6F/minute
 
-  */
+    */
 #define SIM_HEAT_RISE_PER_SECOND (0.09/60)
 #define SIM_COOL_DROP_PER_SECOND (0.6/60)
 #define SIM_TEMP_XFER_BEER_PER_SECOND (0.00045/60)
 #define SIM_TEMP_XFER_CHAMBR_PER_SECOND (0.00225/60)
 
-  double lastSim_seconds = (Time.now() - ts_lastSim);
-  ts_lastSim = Time.now();
+    double lastSim_seconds = (Time.now() - ts_lastSim);
+    ts_lastSim = Time.now();
 
-  // beer temp react's to chamber temp
-  fake_beer_temp += (fake_chamber_temp - fake_beer_temp) *
+    // beer temp react's to chamber temp
+    fake_beer_temp += (fake_chamber_temp - fake_beer_temp) *
                     (SIM_TEMP_XFER_BEER_PER_SECOND * lastSim_seconds);
 
-  if (myRelays.getHeatCoolStatus() == HEATER_ON) {
-      fake_chamber_temp += SIM_HEAT_RISE_PER_SECOND * lastSim_seconds;
-  } else if (myRelays.getHeatCoolStatus() == COOLING_ON) {
-      fake_chamber_temp -= SIM_COOL_DROP_PER_SECOND *lastSim_seconds;
-  } else {  // we're coasting in idle so beer slowly affects chamber
-      fake_chamber_temp += (fake_beer_temp - fake_chamber_temp) *
-                          (SIM_TEMP_XFER_CHAMBR_PER_SECOND * lastSim_seconds);
-  }
+    if (myRelays.getHeatCoolStatus() == HEATER_ON) {
+        fake_chamber_temp += SIM_HEAT_RISE_PER_SECOND * lastSim_seconds;
+    } else if (myRelays.getHeatCoolStatus() == COOLING_ON) {
+        fake_chamber_temp -= SIM_COOL_DROP_PER_SECOND *lastSim_seconds;
+    } else {  // we're coasting in idle so beer slowly affects chamber
+        fake_chamber_temp += (fake_beer_temp - fake_chamber_temp) *
+                            (SIM_TEMP_XFER_CHAMBR_PER_SECOND * lastSim_seconds);
+    }
 
-  ts_lastSim = Time.now();
+    ts_lastSim = Time.now();
 
-  chamber_temp_actual = fake_chamber_temp;
-  beer_temp_actual = fake_beer_temp;
-  // end of fake temp code
-  //
+    chamber_temp_actual = fake_chamber_temp;
+    beer_temp_actual = fake_beer_temp;
+    // end of fake temp code
+
 #endif
 
-  // Apply low pass filter to PID output to reduce on/off signals to cooling
-  // the alpha parameter of y += alpha * (x-y); needs to stay close to
-  // unity (1.0) to keep the lag time down
-  beerTempPID.Compute();
-  chamber_target_temp += 0.99 * (beer_pid_out - chamber_target_temp);
+    // Apply low pass filter to PID output to reduce on/off signals to cooling
+    // the alpha parameter of y += alpha * (x-y); needs to stay close to
+    // unity (1.0) to keep the lag time down
+    beerTempPID.Compute();
+    chamber_target_temp += 0.99 * (beer_pid_out - chamber_target_temp);
 
-  chamberTempPID.Compute();
-  control_signal += 0.99 * (chamber_pid_out - control_signal);
+    chamberTempPID.Compute();
+    control_signal += 0.99 * (chamber_pid_out - control_signal);
+
+    Particle.process();
+
 }
 
 /* ---------------------------------------------------------------------------*/
 /* ---------------------------------------------------------------------------*/
 void control_HeatCool(void) {
-  if (cool_limit == COOL_LIMIT1) {
-    if (control_signal > COOL_LIMIT2) {
-      cool_limit = COOL_LIMIT2;
+    if (cool_limit == COOL_LIMIT1) {
+        if (control_signal > COOL_LIMIT2) {
+            cool_limit = COOL_LIMIT2;
+        }
     }
-  }
 
-  if (cool_limit == COOL_LIMIT2) {
-    if (control_signal < COOL_LIMIT1) {
-      cool_limit = COOL_LIMIT1;
+    if (cool_limit == COOL_LIMIT2) {
+        if (control_signal < COOL_LIMIT1) {
+            cool_limit = COOL_LIMIT1;
+        }
     }
-  }
 
-  if (heat_limit == HEAT_LIMIT2) {
-    if (control_signal > HEAT_LIMIT1) {
-      heat_limit = HEAT_LIMIT1;
+    if (heat_limit == HEAT_LIMIT2) {
+        if (control_signal > HEAT_LIMIT1) {
+            heat_limit = HEAT_LIMIT1;
+        }
     }
-  }
 
-  if (heat_limit == HEAT_LIMIT1) {
-    if (control_signal < HEAT_LIMIT2) {
-      heat_limit = HEAT_LIMIT2;
+    if (heat_limit == HEAT_LIMIT1) {
+        if (control_signal < HEAT_LIMIT2) {
+            heat_limit = HEAT_LIMIT2;
+        }
     }
-  }
 
   if (paused) {
     myRelays.idle();
@@ -321,20 +340,21 @@ void control_HeatCool(void) {
 
   switch (myRelays.getHeatCoolStatus()) {
     case COOLING_ON:
-      current_action = "Cool";
-      break;
+        current_action = "Cool";
+        break;
     case HEATER_ON:
-      current_action = "Heat";
-      break;
+        current_action = "Heat";
+        break;
     case IDLE:
-      if (paused) {
-        current_action = "Paus";
-      } else {
-        current_action = "Idle";
-      }
-      break;
+        if (paused) {
+            current_action = "Paus";
+        } else {
+            current_action = "Idle";
+        }
+        break;
   }
 
+    Particle.process();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -385,13 +405,13 @@ int setBeerD(String temp_D) {
     float temp = atof(temp_D); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      beerD = temp;
-      beerTempPID.SetTunings(beerP, beerI, beerD);
-      beerTempPID.SynchITerm();
+        beerD = temp;
+        beerTempPID.SetTunings(beerP, beerI, beerD);
+        beerTempPID.SynchITerm();
 
-      myStorage.store_beer_pid(beerP, beerI, beerD);
+        myStorage.store_beer_pid(beerP, beerI, beerD);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -505,60 +525,61 @@ int setPause(String pause) {
 #define MAX_DATA_SIZE 622
 void update_status() {
 
-  // start with system_status ----
-  // get times in seconds to calc work
-  uptime = System.uptime();
-  cooltime = myRelays.get_cool_runtime();
-  heattime = myRelays.get_heat_runtime();
+    // start with system_status ----
+    // get times in seconds to calc work
+    uptime = System.uptime();
+    cooltime = myRelays.get_cool_runtime();
+    heattime = myRelays.get_heat_runtime();
 
-  percent_cool = (cooltime / uptime) * 100.0;
-  percent_heat = (heattime / uptime) * 100.0;
+    percent_cool = (cooltime / uptime) * 100.0;
+    percent_heat = (heattime / uptime) * 100.0;
 
-  char buffer[MAX_DATA_SIZE];
-  memset(buffer, 0, sizeof(buffer));
+    char buffer[MAX_DATA_SIZE];
+    memset(buffer, 0, sizeof(buffer));
 
-  snprintf(buffer, sizeof(buffer),
+    snprintf(buffer, sizeof(buffer),
     "|BT:%4.1f|BA:%4.1f|CT:%4.1f|CA:%4.1f|CS:%4.1f|PH:%4.1f|PC:%4.1f|BI:%4.1f|CI:%4.1f|SG:%5.3f|end",
-      beer_temp_target,
-      beer_temp_actual,
-      chamber_target_temp,
-      chamber_temp_actual,
-      chamber_pid_out,
-      percent_heat,
-      percent_cool,
-      beerTempPID.GetITerm(),
-      chamberTempPID.GetITerm(),
-      tilt_sg
-      );
+        beer_temp_target,
+        beer_temp_actual,
+        chamber_target_temp,
+        chamber_temp_actual,
+        chamber_pid_out,
+        percent_heat,
+        percent_cool,
+        beerTempPID.GetITerm(),
+        chamberTempPID.GetITerm(),
+        tilt_sg
+        );
 
-  system_status.remove(0);
-  system_status.concat("TA:");
-  system_status.concat(target_action);
-  system_status.concat("|CA:");
-  system_status.concat(current_action);
-  system_status.concat(buffer);
+    system_status.remove(0);
+    system_status.concat("TA:");
+    system_status.concat(target_action);
+    system_status.concat("|CA:");
+    system_status.concat(current_action);
+    system_status.concat(buffer);
 
-  if ((Time.now() - ts_last_publish) > SEND_STATUS_INTERVAL) {
+    if ((Time.now() - ts_last_publish) > SEND_STATUS_INTERVAL) {
     if (Particle.connected()) {
-      Particle.publish("SystemStatus", system_status, PRIVATE);
-      ts_last_publish = Time.now();
+        Particle.publish("SystemStatus", system_status, PRIVATE);
+        ts_last_publish = Time.now();
     }
-  }
+    }
 
-  // reset and do tuning status
-  memset(buffer, 0, sizeof(buffer));
-  snprintf(buffer, sizeof(buffer),
+    // reset and do tuning status
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer),
     "|BP:%4.2f|BI:%1.4f|BD:%1.4f|CP:%4.2f|CI:%1.4f|CD:%1.4f|end",
-      beerP,
-      beerI,
-      beerD,
-      chamberP,
-      chamberI,
-      chamberD
-      );
+        beerP,
+        beerI,
+        beerD,
+        chamberP,
+        chamberI,
+        chamberD
+        );
 
-  system_tuning.remove(0);
-  system_tuning.concat(buffer);
+    system_tuning.remove(0);
+    system_tuning.concat(buffer);
+    Particle.process();
 
 } // end of update_status ----------------------------------------
 
@@ -626,10 +647,7 @@ void check_bluetooth() {
 }
 #endif
 
-//---------------------------------------------------------------------------
-// setup() runs once, when the device is first turned on.
-//---------------------------------------------------------------------------
-void setup() {
+void setupCloudInterface() {
   Particle.variable("SystemStatus", system_status);
   Particle.variable("TuningStatus", system_tuning);
   Particle.variable("Uptime", uptime);
@@ -648,51 +666,117 @@ void setup() {
   // Always expose these, just may not be valid values
   Particle.variable("bleDeviceCount", ble_max_count);
   Particle.variable("beaconMajor", beaconMajor);
+}
 
+//---------------------------------------------------------------------------
+// called from setup, runs once, when the device is first turned on.
+//---------------------------------------------------------------------------
+void setupPinModes() {
+  Serial.println("Setup Pin Modes");
+  // Start with relays off
+  pinMode(COOL_PIN, OUTPUT);
+  digitalWrite(COOL_PIN, LOW);
+
+  pinMode(HEAT_PIN, OUTPUT);
+  digitalWrite(HEAT_PIN, LOW);
+
+  pinMode(HEARTBEAT_PIN, OUTPUT);
+  digitalWrite(HEARTBEAT_PIN, LOW);
+}
+
+//---------------------------------------------------------------------------
+// called from setup, runs once, when the device is first turned on.
+//---------------------------------------------------------------------------
+void setupSerial() {
   // Just to see what's up
   Serial.begin(9600);
-  delay(10000); // give time to connect to tty
+  delay(5000); // give time to connect to tty
   Serial.println("opening");
   delay(500);
+}
 
-  checkNetworking();
-  initPID_loops();
+//---------------------------------------------------------------------------
+// setup() runs once, when the device is first turned on.
+//---------------------------------------------------------------------------
+void setup() {
+    setupCloudInterface(); // we need to do this first if we want it to work
 
-  paused = myStorage.pause_state();
+    setupSerial(); // so we can show debug messages
+    setupPinModes(); // I/O pins on chip
 
-  // these are fake values for test when no sensors attached
-  fake_beer_temp = 64.7;
-  fake_chamber_temp = 70.0;
+    // checkNetworking(); do we still need this????????
+    initPID_loops();
 
-  cool_limit = COOL_LIMIT2;
-  heat_limit = HEAT_LIMIT2;
+    paused = myStorage.pause_state();
 
-  ts_lastSim = Time.now();
-  ts_last_loop = ts_lastSim - 200; // pretend we last looped 200 seconds ago
-  ts_last_publish = ts_last_loop;
+    myIndicator.init();
 
-  Serial.println("Getting ready to init sensors");
-  delay(500);
-  mySensors.init();
-  Serial.println("After init, start sensor refresh");
-  delay(500);
-  mySensors.refresh();
-  Serial.println("After refresh");
-  delay(500);
+    // If we don't find expected sensors, go thru sensor assignment routine
+    mySensors.init();
+
+    uint8_t beerAddress[8];
+    uint8_t chamberAddress[8];
+
+    // get stored addresses for sensors
+    myStorage.getBeerSensorAddr(beerAddress);
+    myStorage.getChamberSensorAddr(chamberAddress);
+
+    if (!mySensors.beer_sensor_attached(beerAddress)) {
+        assign_sensors();
+    } else if (!mySensors.chamber_sensor_attached(chamberAddress)) {
+        assign_sensors();
+    }
+
+    mySensors.refresh();
 
 #if Wiring_BLE
     BLE.on();
 #endif
 
-  // Start with relays off
-  //TODO: replace pin numbers with the defined versions
-  pinMode(D2, OUTPUT); // end
-  digitalWrite(D2, LOW);
+}
 
-  pinMode(D7, OUTPUT);
-  digitalWrite(D7, LOW); // middle
+//---------------------------------------------------------------------------
+/*
+    - STARTING dim white, bright white, green, yellow, red)
+    - plugin beer temperature sensor
+    - BEER wait for color sequence (dim while, bright white, yellow, red, green)
+    - plugin chamber temperature sensor
+*/
+//---------------------------------------------------------------------------
+void assign_sensors(void) {
+    boolean found = false;
+    uint8_t addr[8];
 
-  myIndicator.init();
+    Serial.println("in assign_sensors");
+
+    myIndicator.setSensorsInit(myIndicator.STARTING_SENSOR_SEARCH);
+    mySensors.wait_for_no_sensors();
+    myIndicator.setSensorsInit(myIndicator.NO_SENSORS_ATTACHED);
+
+    do {
+        found = mySensors.assign_beer_sensor(addr);
+    } while (found == false);
+
+    Serial.printf("Found beer sensor %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
+        addr[0], addr[1], addr[2], addr[3],
+        addr[4], addr[5], addr[6], addr[7]);
+
+    // store address of sensor just found
+    myStorage.store_beer_sensor_addr(addr);
+
+    myIndicator.setSensorsInit(myIndicator.FOUND_BEER_SENSOR);
+    do {
+        found = mySensors.assign_chamber_sensor(addr);
+    } while (found == false);
+
+    Serial.printf("Found chamber sensor %02X %02X %02X %02X %02X %02X %02X %02X  =  ",
+        addr[0], addr[1], addr[2], addr[3],
+        addr[4], addr[5], addr[6], addr[7]);
+
+    // store address of sensor just found
+    myStorage.store_chamber_sensor_addr(addr);
+
+    myIndicator.setStatus(0);
 }
 
 //---------------------------------------------------------------------------
@@ -700,27 +784,21 @@ void setup() {
 //---------------------------------------------------------------------------
 void loop() {
     checkNetworking();
-    Particle.process();
-
     read_sensors();  // reads the sensosrs to get temps
-    Particle.process();
 
     if (!paused) {
-      run_calculations();
-      Particle.process();
-      beerITerm = beerTempPID.GetITerm();
-      chamberITerm = chamberTempPID.GetITerm();
-      myIndicator.setStatus(beer_temp_actual - beer_temp_target);
+        run_calculations();
+
+        beerITerm = beerTempPID.GetITerm();
+        chamberITerm = chamberTempPID.GetITerm();
+
+        myIndicator.setStatus(beer_temp_actual - beer_temp_target);
     } else {
-      myIndicator.setPaused();
+        myIndicator.setPaused();
     }
 
     control_HeatCool();
-    Particle.process();
-
     update_status();
-    Particle.process();
-
     myIndicator.setStatus(beer_temp_actual - beer_temp_target);
 
     SetPace();
