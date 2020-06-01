@@ -28,39 +28,42 @@
 
 #define STORAGE_DEF_NAME "BrewFerm\0"
 
+//----------------------------------------------------------------------------
+// Handle all read/write of settings to EEPROM
+//----------------------------------------------------------------------------
 class STORAGE {
- public:
-    // commonly used functions
-    void store_beer_temp_target(double sp);
-    void store_pause_state(boolean state);
-    void store_beer_pid(double p, double i, double d);
-    void store_chamber_pid(double p, double i, double d);
+    public:
+        // commonly used functions
+        void store_beer_temp_target(double sp);
+        void store_pause_state(boolean state);
+        void store_beer_pid(double p, double i, double d);
+        void store_chamber_pid(double p, double i, double d);
 
-    double beer_temp_target();
-    boolean pause_state();
+        double beer_temp_target();
+        boolean pause_state();
 
-    double beerP();
-    double beerI();
-    double beerD();
+        double beerP();
+        double beerI();
+        double beerD();
 
-    double chamberP();
-    double chamberI();
-    double chamberD();
+        double chamberP();
+        double chamberI();
+        double chamberD();
 
-    void getBeerSensorAddr(uint8_t addr[8]);
-    void getChamberSensorAddr(uint8_t addr[8]);
+        void getBeerSensorAddr(uint8_t addr[8]);
+        void getChamberSensorAddr(uint8_t addr[8]);
 
-    void store_beer_sensor_addr(uint8_t addr[8]);
-    void store_chamber_sensor_addr(uint8_t addr[8]);
+        void store_beer_sensor_addr(uint8_t addr[8]);
+        void store_chamber_sensor_addr(uint8_t addr[8]);
 
-  private:
-    void init(void);
-    boolean init_ran = false;
+    private:
+        void init(void);
+        boolean init_ran = false;
 
-    // stored values
-    double beer_target = 64.0; //TODO: get default from brewferm.h
+        // stored values
+        double beer_target = 64.0; //TODO: get default from brewferm.h
 
-    boolean paused = true;
+        boolean paused = true;
 };
 
 #endif  // STORAGE_H_

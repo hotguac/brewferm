@@ -20,7 +20,7 @@
 #include "relays.h"
 
 //----------------------------------------------------------------------------
-//
+// Used to control turning on and off the relays controlling heat and cooling
 //----------------------------------------------------------------------------
 RELAYS::RELAYS(void) {
     pinMode(relayCoolPin, OUTPUT);
@@ -45,7 +45,7 @@ RELAYS::RELAYS(void) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Turn on heat if the duty cycle allows it
 //----------------------------------------------------------------------------
 void RELAYS::heatON(void) {
     time_t now = Time.now();
@@ -80,7 +80,7 @@ void RELAYS::heatON(void) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Turn on cooling if the duty cycle allows it
 //----------------------------------------------------------------------------
 void RELAYS::coolON(void) {
     time_t now = Time.now();
@@ -115,7 +115,7 @@ void RELAYS::coolON(void) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Turn off heating and cooling if duty cycle allows it
 //----------------------------------------------------------------------------
 void RELAYS::idle(void) {
     time_t now = Time.now();
@@ -143,12 +143,15 @@ void RELAYS::idle(void) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose the current status
 //----------------------------------------------------------------------------
 mode_heat_cool RELAYS::getHeatCoolStatus() {
     return heat_cool_Status;
 }
 
+//----------------------------------------------------------------------------
+// Expose the how long the heater has been running
+//----------------------------------------------------------------------------
 unsigned int RELAYS::get_heat_runtime() { // number of seconds heat has run
     if (heat_cool_Status == HEATER_ON) {
         return heat_runtime + (Time.now() - ts_heatON);
@@ -157,6 +160,9 @@ unsigned int RELAYS::get_heat_runtime() { // number of seconds heat has run
     return heat_runtime; // cooling on or idle
 }
 
+//----------------------------------------------------------------------------
+// Expose the how long cooling has been running
+//----------------------------------------------------------------------------
 unsigned int RELAYS::get_cool_runtime() { // number of seconds cooling has run
     if (heat_cool_Status == COOLING_ON) {
         return cool_runtime + (Time.now() - ts_coolON);

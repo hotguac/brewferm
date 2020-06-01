@@ -19,6 +19,10 @@
 
 #include "storage.h"
 
+#define CURRENT_VERSION 0x12
+//----------------------------------------------------------------------------
+// The current (most recent) settings structure stored in EEPROM
+//----------------------------------------------------------------------------
 struct FermSettings {
     uint32_t type;
 
@@ -38,6 +42,10 @@ struct FermSettings {
     uint8_t sensorAddressChamber[8];
 };
 
+#define X11_VERSION 0x11
+//----------------------------------------------------------------------------
+// Older version of settings structure stored in EEPROM
+//----------------------------------------------------------------------------
 struct FermSettings0x11 {
     uint32_t type;
 
@@ -55,9 +63,6 @@ struct FermSettings0x11 {
 };
 
 FermSettings settings;
-
-#define CURRENT_VERSION 0x12
-#define X11_VERSION 0x11 // this is a previous version of settings
 
 //----------------------------------------------------------------------------
 // Read settings and check the type, copy and update and necesary
@@ -120,7 +125,7 @@ void STORAGE::init(void) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Update structure with new sensor address and store to EEPROM
 //----------------------------------------------------------------------------
 void STORAGE::store_beer_sensor_addr(uint8_t addr[8]) {
     if (init_ran == false) { init(); }
@@ -129,7 +134,7 @@ void STORAGE::store_beer_sensor_addr(uint8_t addr[8]) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Update structure with new sensor address and store to EEPROM
 //----------------------------------------------------------------------------
 void STORAGE::store_chamber_sensor_addr(uint8_t addr[8]) {
     if (init_ran == false) { init(); }
@@ -138,7 +143,7 @@ void STORAGE::store_chamber_sensor_addr(uint8_t addr[8]) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Update structure with new beer temperature target and store to EEPROM
 //----------------------------------------------------------------------------
 void STORAGE::store_beer_temp_target(double sp) {
     if (init_ran == false) { init(); }
@@ -147,21 +152,21 @@ void STORAGE::store_beer_temp_target(double sp) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose the stored beer sensor address
 //----------------------------------------------------------------------------
 void STORAGE::getBeerSensorAddr(uint8_t addr[8]) {
     memcpy(addr, settings.sensorAddressBeer, sizeof(uint8_t) * 8);
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose the stored chamber sensor address
 //----------------------------------------------------------------------------
 void STORAGE::getChamberSensorAddr(uint8_t addr[8]) {
     memcpy(addr, settings.sensorAddressChamber, sizeof(uint8_t) * 8);
 }
 
 //----------------------------------------------------------------------------
-//
+// Update structure with new pause state and store to EEPROM
 //----------------------------------------------------------------------------
 void STORAGE::store_pause_state(boolean state) {
     if (init_ran == false) { init(); }
@@ -170,7 +175,7 @@ void STORAGE::store_pause_state(boolean state) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Update structure with new beer PID settings and store to EEPROM
 //----------------------------------------------------------------------------
 void STORAGE::store_beer_pid(double p, double i, double d) {
     if (init_ran == false) { init(); }
@@ -184,7 +189,7 @@ void STORAGE::store_beer_pid(double p, double i, double d) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Update structure with new chamber PID settings and store to EEPROM
 //----------------------------------------------------------------------------
 void STORAGE::store_chamber_pid(double p, double i, double d) {
     if (init_ran == false) { init(); }
@@ -198,7 +203,7 @@ void STORAGE::store_chamber_pid(double p, double i, double d) {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose current beer temperature target
 //----------------------------------------------------------------------------
 double STORAGE::beer_temp_target() {
     if (init_ran == false) { init(); }
@@ -206,7 +211,7 @@ double STORAGE::beer_temp_target() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose the current pause state
 //----------------------------------------------------------------------------
 boolean STORAGE::pause_state() {
     if (init_ran == false) { init(); }
@@ -214,7 +219,7 @@ boolean STORAGE::pause_state() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose beer PID 'P' tuning
 //----------------------------------------------------------------------------
 double STORAGE::beerP() {
     if (init_ran == false) { init(); }
@@ -222,7 +227,7 @@ double STORAGE::beerP() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose beer PID 'I' tuning
 //----------------------------------------------------------------------------
 double STORAGE::beerI() {
     if (init_ran == false) { init(); }
@@ -230,7 +235,7 @@ double STORAGE::beerI() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose beer PID 'D' tuning
 //----------------------------------------------------------------------------
 double STORAGE::beerD() {
     if (init_ran == false) { init(); }
@@ -238,7 +243,7 @@ double STORAGE::beerD() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose chamber PID 'P' tuning
 //----------------------------------------------------------------------------
 double STORAGE::chamberP() {
     if (init_ran == false) { init(); }
@@ -246,7 +251,7 @@ double STORAGE::chamberP() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose chamber PID 'I' tuning
 //----------------------------------------------------------------------------
 double STORAGE::chamberI() {
     if (init_ran == false) { init(); }
@@ -254,7 +259,7 @@ double STORAGE::chamberI() {
 }
 
 //----------------------------------------------------------------------------
-//
+// Expose chamber PID 'D' tuning
 //----------------------------------------------------------------------------
 double STORAGE::chamberD() {
     if (init_ran == false) { init(); }

@@ -100,10 +100,10 @@ RELAYS myRelays;
 STORAGE myStorage;
 INDICATORS myIndicator;
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Set the upper and lower bounds for the beer PID output value
 //   which in our case will be our target fermentation chamber temperature
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 void adjustChamberTempLimits(double sp) {
     if (sp > FERM_CRASH_SPLIT) {
         // We're still in fermentation mode
@@ -116,9 +116,9 @@ void adjustChamberTempLimits(double sp) {
     chamberTempPID.SetOutputLimits(1, 99);
 }
 
-// ----------------------------------
+//----------------------------------------------------------------------------
 // Initialize and prime beer temp PID
-// ----------------------------------
+//----------------------------------------------------------------------------
 void initPID_loops(void) {
     // these are fake values for test when no sensors attached
     fake_beer_temp = 64.7;
@@ -172,9 +172,9 @@ void initPID_loops(void) {
     update_status();
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Do initial network setup
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
 
 void checkNetworking(void) {
@@ -196,9 +196,9 @@ void checkNetworking(void) {
     Particle.process();
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Read sensors to refresh actual temperature values
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 void read_sensors() {
 
     mySensors.refresh();
@@ -219,9 +219,9 @@ void read_sensors() {
     Particle.process();
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Temps change slowly so we don't want to feed PID to frequently
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 void SetPace(void) {
     digitalWrite(HEARTBEAT_PIN, 1); // give visual feedback on how long we delay
 
@@ -236,9 +236,9 @@ void SetPace(void) {
     ts_last_loop = Time.now();
 }
 
-/* ---------------------------------------------------------------------------*/
-//
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+// Run the PID computations and update control signals
+//----------------------------------------------------------------------------
 void run_calculations() {
     // this is just for testing without any sensors attached
     // we'll fake the beer temp moving towards the chamber temp and
@@ -292,8 +292,10 @@ void run_calculations() {
     Particle.process();
 }
 
-/* ---------------------------------------------------------------------------*/
-/* ---------------------------------------------------------------------------*/
+//---------------------------------------------------------------------------
+// Update heat/cool on/off limits based on previous values and current
+// control signals. Turn heat and cooling on or off as appropriate
+//---------------------------------------------------------------------------
 void control_HeatCool(void) {
     if (cool_limit == COOL_LIMIT1) {
         if (control_signal > COOL_LIMIT2) {
@@ -356,9 +358,9 @@ void control_HeatCool(void) {
     Particle.process();
 }
 
-/* ---------------------------------------------------------------------------*/
+//---------------------------------------------------------------------------
 // Cloud function to set beerPID 'P' value
-/* ---------------------------------------------------------------------------*/
+//---------------------------------------------------------------------------
 int setBeerP(String temp_P) {
     int result = 0;
     float temp = atof(temp_P); // returns 0.0 if atof fails
@@ -396,9 +398,9 @@ int setBeerI(String temp_I) {
     return result;
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Cloud function to set beerPID 'D' value
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 int setBeerD(String temp_D) {
     int result = 0;
     float temp = atof(temp_D); // returns 0.0 if atof fails
@@ -417,9 +419,9 @@ int setBeerD(String temp_D) {
 }
 
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Cloud function to set chamberPID 'P' value
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 int setChamberP(String temp_P) {
     int result = 0;
     float temp = atof(temp_P); // returns 0.0 if atof fails
@@ -437,9 +439,9 @@ int setChamberP(String temp_P) {
     return result;
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Cloud function to set chamberPID 'I' value
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 int setChamberI(String temp_I) {
     int result = 0;
     float temp = atof(temp_I); // returns 0.0 if atof fails
@@ -457,9 +459,9 @@ int setChamberI(String temp_I) {
     return result;
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Cloud function to set chamberPID 'D' value
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 int setChamberD(String temp_D) {
     int result = 0;
     float temp = atof(temp_D); // returns 0.0 if atof fails
@@ -477,9 +479,9 @@ int setChamberD(String temp_D) {
     return result;
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Cloud function to set target beer temp
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 int setBeerTarget(String temp_target) {
     int result = 0;
     float temp = atof(temp_target); // returns 0.0 if atof fails
@@ -497,9 +499,9 @@ int setBeerTarget(String temp_target) {
     return result;
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Cloud function to pause heat/cool functions when not in use
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 int setPause(String pause) {
     int result = 0;
 
@@ -518,9 +520,9 @@ int setPause(String pause) {
     return result;
 }
 
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 // Build status string for reporting to the cloud
-/* ---------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 #define MAX_DATA_SIZE 622
 void update_status() {
 
@@ -647,6 +649,10 @@ void check_bluetooth() {
 }
 #endif
 
+//----------------------------------------------------------------------------
+// Expose variables and functions to the cloud - this must be the first
+// step in the setup() function
+//----------------------------------------------------------------------------
 void setupCloudInterface() {
     Particle.variable("SystemStatus", system_status);
     Particle.variable("TuningStatus", system_tuning);

@@ -17,6 +17,9 @@
 #define MAX_COLOR_SEQ_SIZE 16
 #define INDICATORS_MILLIS 500
 
+//---------------------------------------------------------------------------
+// Brewferm works with this class which handles setting custom RGS status
+//---------------------------------------------------------------------------
 class INDICATORS {
     public:
         //
@@ -34,6 +37,9 @@ class INDICATORS {
         void setSensorsInit(sensor_stage);
 };
 
+//---------------------------------------------------------------------------
+// This is used by INDICATORS to control the custom RGB status
+//---------------------------------------------------------------------------
 class CustomStatus: public LEDStatus {
     public:
         explicit CustomStatus(LEDPriority priority) :

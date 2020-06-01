@@ -16,7 +16,7 @@ size_t init_colorCount =
 CustomStatus customStatus(LED_PRIORITY_IMPORTANT);
 
 //---------------------------------------------------------------------------
-//
+// Set the color sequence to be displayed
 //---------------------------------------------------------------------------
 void CustomStatus::setColors(uint32_t color_seq[], size_t count) {
     if (count <= MAX_COLOR_SEQ_SIZE) {
@@ -31,7 +31,7 @@ void CustomStatus::setColors(uint32_t color_seq[], size_t count) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Start using custom RGB sequence
 //---------------------------------------------------------------------------
 INDICATORS::INDICATORS(void) {
     customStatus.setColors(init_colors, init_colorCount);
@@ -48,7 +48,7 @@ void INDICATORS::init(void) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Indicate that brewferm is a paused state
 //---------------------------------------------------------------------------
 void INDICATORS::setPaused(void) {
     uint32_t paused_colors[] = {
@@ -68,7 +68,7 @@ void INDICATORS::setPaused(void) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Indicate that the wort temp is within a nominal range of target temp
 //---------------------------------------------------------------------------
 void INDICATORS::setInTemp(void) {
     uint32_t inTemp_colors[] = {
@@ -88,7 +88,7 @@ void INDICATORS::setInTemp(void) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Indicate the the wort temp is just outside the nominal range
 //---------------------------------------------------------------------------
 void INDICATORS::setNearTemp(void) {
     uint32_t nearTemp_colors[] = {
@@ -108,7 +108,7 @@ void INDICATORS::setNearTemp(void) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Indicate that the wort temp is outside of the desired range
 //---------------------------------------------------------------------------
 void INDICATORS::setOutOfRange(float offset) {
     uint32_t out_color;
@@ -136,7 +136,7 @@ void INDICATORS::setOutOfRange(float offset) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Given a temp difference from target, set apporiate indicator sequence
 //---------------------------------------------------------------------------
 void INDICATORS::setStatus(float offset) {
     float a = abs(offset);
@@ -151,7 +151,7 @@ void INDICATORS::setStatus(float offset) {
 }
 
 //---------------------------------------------------------------------------
-//
+// Use RGB LED to indicate next step in assigning temp sensors to roles
 //---------------------------------------------------------------------------
 void INDICATORS::setSensorsInit(sensor_stage stage) {
     uint32_t starting_colors[] = {

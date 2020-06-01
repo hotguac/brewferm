@@ -49,6 +49,7 @@ White Data -> yellow
 #define SENSORS_H_
 
 #define MAX_SENSORS 4
+#define ADDRESS_SIZE (sizeof(uint8_t) * 8)
 
 class SENSORS {
     public:

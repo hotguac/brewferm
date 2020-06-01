@@ -23,12 +23,10 @@
 
 #include <string>
 
-//#define BUFF_SIZE 2048
-
-// #############################
+//#############################
 const int16_t dsData = SENSOR_PIN;
 DS18B20 sensor(dsData);
-// #############################
+//#############################
 
 //---------------------------------------------------------------------------
 // We haven't established the sensors or temps at this point
@@ -40,9 +38,8 @@ SENSORS::SENSORS(void) {
 }
 
 //---------------------------------------------------------------------------
-//TODO: change to detect how many sensors connected instead of assuming two
-//
-// This routine scans for attached sensors and stores their addresses.
+// This routine scans for up to MAX_SENSORS attached sensors
+// and stores their addresses.
 //---------------------------------------------------------------------------
 void SENSORS::init() {
     Serial.print("starting sensor init ");
@@ -95,7 +92,6 @@ boolean SENSORS::assign_beer_sensor(uint8_t addr[8]) {
     return found;
 }
 
-#define ADDRESS_SIZE (sizeof(uint8_t) * 8)
 //---------------------------------------------------------------------------
 // This routine waits for a new sensor to show up in the scan and
 // then assigns it the role of beer sensor and updates the addresss.
