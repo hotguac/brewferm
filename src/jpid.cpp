@@ -22,28 +22,26 @@ PID::PID(double* Input,
          double Kp,
          double Ki,
          double Kd,
-         direction_t ControllerDirection)
+         direction_t ControllerDirection) {
 
-{
+    myOutput = Output;
+    myInput = Input;
+    mySetpoint = Setpoint;
 
-   myOutput = Output;
-   myInput = Input;
-   mySetpoint = Setpoint;
+    inAuto = false;
 
-	inAuto = false;
+    PID::SetOutputLimits(0, 255);		//default output limit corresponds to
+                                                //the arduino pwm limits
 
-	PID::SetOutputLimits(0, 255);		//default output limit corresponds to
-												//the arduino pwm limits
+    SampleTime = 100;		//default Controller Sample Time is 0.1 seconds
 
-   SampleTime = 100;		//default Controller Sample Time is 0.1 seconds
+    PID::SetControllerDirection(ControllerDirection);
+    PID::SetTunings(Kp, Ki, Kd);
 
-   PID::SetControllerDirection(ControllerDirection);
-   PID::SetTunings(Kp, Ki, Kd);
+    lastTime = millis() - SampleTime;
 
-   lastTime = millis() - SampleTime;
-
-   lastInput = 0;
-   lastError = 0;
+    lastInput = 0;
+    lastError = 0;
 }
 
 /* Compute() **********************************************************************
@@ -61,50 +59,46 @@ bool PID::Compute()
    unsigned long now = millis();
    unsigned long timeChange = (now - lastTime);
 
-   if (timeChange>=SampleTime)
-   {
+    if (timeChange>=SampleTime)    {
       /*Compute all the working error variables*/
-	   double input = *myInput;
-      double error = *mySetpoint - input;
+	    double input = *myInput;
+        double error = *mySetpoint - input;
 
-      ITerm += (ki * error);
+        ITerm += (ki * error);
 
-      if (ITerm > outMax) {
-         ITerm = outMax;
-      }
-      else {
-         if (ITerm < outMin) {
-            ITerm = outMin;
-         }
-      }
+        if (ITerm > outMax) {
+            ITerm = outMax;
+        } else {
+            if (ITerm < outMin) {
+                ITerm = outMin;
+            }
+        }
 
-      lastError = error;
+        lastError = error;
 
-      double dInput = (input - lastInput);
+        double dInput = (input - lastInput);
 
-      /*Compute PID Output*/
-      double output = (kp * error) + ITerm - (kd * dInput);
+        /*Compute PID Output*/
+        double output = (kp * error) + ITerm - (kd * dInput);
 
-	   if (output > outMax) {
-         output = outMax;
-      }
-      else {
-         if(output < outMin) {
-            output = outMin;
-         }
-      }
+        if (output > outMax) {
+            output = outMax;
+        } else {
+            if(output < outMin) {
+                output = outMin;
+            }
+        }
 
-	   *myOutput = output;
+        *myOutput = output;
 
-      /*Remember some variables for next time*/
-      lastInput = input;
-      lastTime = now;
+        /*Remember some variables for next time*/
+        lastInput = input;
+        lastTime = now;
 
-	   return true;
-   }
-   else {
-      return false;
-   }
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /* SetTunings(...)*************************************************************

@@ -210,8 +210,7 @@ double SENSORS::getTemp(uint8_t addr[8]) {
 
     if (i < MAXRETRY) {
         Serial.println(_temp);
-    }
-    else {
+    } else {
         _temp = NAN;
         Serial.println("Invalid reading");
     }

@@ -30,7 +30,7 @@
 
 class STORAGE {
  public:
-  // commonly used functions
+    // commonly used functions
     void store_beer_temp_target(double sp);
     void store_pause_state(boolean state);
     void store_beer_pid(double p, double i, double d);
@@ -57,7 +57,7 @@ class STORAGE {
     void init(void);
     boolean init_ran = false;
 
-  // stored values
+    // stored values
     double beer_target = 64.0; //TODO: get default from brewferm.h
 
     boolean paused = true;

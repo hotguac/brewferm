@@ -223,17 +223,17 @@ void read_sensors() {
 // Temps change slowly so we don't want to feed PID to frequently
 /* ---------------------------------------------------------------------------*/
 void SetPace(void) {
-  digitalWrite(HEARTBEAT_PIN, 1); // give visual feedback on how long we delay
+    digitalWrite(HEARTBEAT_PIN, 1); // give visual feedback on how long we delay
 
-  ts_next_loop = ts_last_loop + MIN_LOOP_TIME;
-  ts_now = Time.now();
+    ts_next_loop = ts_last_loop + MIN_LOOP_TIME;
+    ts_now = Time.now();
 
-  if (ts_now < ts_next_loop) {
-    delay((ts_next_loop - ts_now) * 1000);
-  }
+    if (ts_now < ts_next_loop) {
+        delay((ts_next_loop - ts_now) * 1000);
+    }
 
-  digitalWrite(HEARTBEAT_PIN, 0);
-  ts_last_loop = Time.now();
+    digitalWrite(HEARTBEAT_PIN, 0);
+    ts_last_loop = Time.now();
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -290,7 +290,6 @@ void run_calculations() {
     control_signal += 0.99 * (chamber_pid_out - control_signal);
 
     Particle.process();
-
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -320,22 +319,22 @@ void control_HeatCool(void) {
         }
     }
 
-  if (paused) {
-    myRelays.idle();
-    heat_cool_status = IDLE;
-    target_action = "Paus";
-  } else if (control_signal < cool_limit) {
-    myRelays.coolON();
-    heat_cool_status = COOLING_ON;
-    target_action = "Cool";
-  } else if (control_signal > heat_limit) {
-    myRelays.heatON();
-    heat_cool_status = HEATER_ON;
-    target_action = "Heat";
+    if (paused) {
+        myRelays.idle();
+        heat_cool_status = IDLE;
+        target_action = "Paus";
+    } else if (control_signal < cool_limit) {
+        myRelays.coolON();
+        heat_cool_status = COOLING_ON;
+        target_action = "Cool";
+    } else if (control_signal > heat_limit) {
+        myRelays.heatON();
+        heat_cool_status = HEATER_ON;
+        target_action = "Heat";
   } else {
-    myRelays.idle();
-    heat_cool_status = IDLE;
-    target_action = "Idle";
+        myRelays.idle();
+        heat_cool_status = IDLE;
+        target_action = "Idle";
   }
 
   switch (myRelays.getHeatCoolStatus()) {
@@ -365,13 +364,13 @@ int setBeerP(String temp_P) {
     float temp = atof(temp_P); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      beerP = temp;
-      beerTempPID.SetTunings(beerP, beerI, beerD);
-      beerTempPID.SynchITerm();
+        beerP = temp;
+        beerTempPID.SetTunings(beerP, beerI, beerD);
+        beerTempPID.SynchITerm();
 
-      myStorage.store_beer_pid(beerP, beerI, beerD);
+        myStorage.store_beer_pid(beerP, beerI, beerD);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -385,13 +384,13 @@ int setBeerI(String temp_I) {
     float temp = atof(temp_I); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      beerI = temp;
-      beerTempPID.SetTunings(beerP, beerI, beerD);
-      beerTempPID.SynchITerm();
+        beerI = temp;
+        beerTempPID.SetTunings(beerP, beerI, beerD);
+        beerTempPID.SynchITerm();
 
-      myStorage.store_beer_pid(beerP, beerI, beerD);
+        myStorage.store_beer_pid(beerP, beerI, beerD);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -426,13 +425,13 @@ int setChamberP(String temp_P) {
     float temp = atof(temp_P); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      chamberP = temp;
-      chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
-      chamberTempPID.SynchITerm();
+        chamberP = temp;
+        chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+        chamberTempPID.SynchITerm();
 
-      myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
+        myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -446,13 +445,13 @@ int setChamberI(String temp_I) {
     float temp = atof(temp_I); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      chamberI = temp;
-      chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
-      chamberTempPID.SynchITerm();
+        chamberI = temp;
+        chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+        chamberTempPID.SynchITerm();
 
-      myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
+        myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -466,13 +465,13 @@ int setChamberD(String temp_D) {
     float temp = atof(temp_D); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      chamberD = temp;
-      chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
-      chamberTempPID.SynchITerm();
+        chamberD = temp;
+        chamberTempPID.SetTunings(chamberP, chamberI, chamberD);
+        chamberTempPID.SynchITerm();
 
-      myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
+        myStorage.store_chamber_pid(chamberP, chamberI, chamberD);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -486,13 +485,13 @@ int setBeerTarget(String temp_target) {
     float temp = atof(temp_target); // returns 0.0 if atof fails
 
     if (temp > 0.0) {
-      beer_temp_target = temp;
-      beerTempPID.SynchITerm();
-      adjustChamberTempLimits(beer_temp_target);
+        beer_temp_target = temp;
+        beerTempPID.SynchITerm();
+        adjustChamberTempLimits(beer_temp_target);
 
-      myStorage.store_beer_temp_target(beer_temp_target);
+        myStorage.store_beer_temp_target(beer_temp_target);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -505,15 +504,15 @@ int setPause(String pause) {
     int result = 0;
 
     if (!pause.compareTo("YES")) {
-      paused = true;
-      myStorage.store_pause_state(true);
-      myIndicator.setPaused();
+        paused = true;
+        myStorage.store_pause_state(true);
+        myIndicator.setPaused();
     } else if (!pause.compareTo("NO")) {
-      paused = false;
-      myStorage.store_pause_state(false);
-      myIndicator.setStatus(beer_temp_actual - beer_temp_target);
+        paused = false;
+        myStorage.store_pause_state(false);
+        myIndicator.setStatus(beer_temp_actual - beer_temp_target);
     } else {
-      result = -1;
+        result = -1;
     }
 
     return result;
@@ -623,76 +622,77 @@ void check_bluetooth() {
     }
 
     for (int ii = 0; ii < ble_device_count; ii++) {
-      uint8_t buf[BLE_MAX_ADV_DATA_LEN];
-      size_t len;
+        uint8_t buf[BLE_MAX_ADV_DATA_LEN];
+        size_t len;
 
-      len = scanResults[ii].advertisingData.get(BleAdvertisingDataType::MANUFACTURER_SPECIFIC_DATA, buf, BLE_MAX_ADV_DATA_LEN);
+        len = scanResults[ii].advertisingData.get(BleAdvertisingDataType::MANUFACTURER_SPECIFIC_DATA, buf, BLE_MAX_ADV_DATA_LEN);
 
-      if (len == 25) {
-        String head = String::format("%02X%02X%02X%02X", buf[0], buf[1], buf[2], buf[3]);
-        if (head == "4C000215") { // found an iBeacon
-          String uuid = String::format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
-          buf[4], buf[5], buf[6], // skip buf[7] - it says what color of tilt
-          buf[8], buf[9], buf[10], buf[11],
-          buf[12], buf[13], buf[14], buf[15],
-          buf[16], buf[17], buf[18], buf[19]);
+        if (len == 25) {
+            String head = String::format("%02X%02X%02X%02X", buf[0], buf[1], buf[2], buf[3]);
 
-          if (uuid == "A495BBC5B14B44B5121370F02D74DE") { // we found a tilt
-            beaconMajor = String::format("Temp = %d", (buf[20] * 256) + buf[21]);
-            tilt_sg = ((buf[22] * 256) + buf[23]) / 1000.0;
-          }
+            if (head == "4C000215") { // found an iBeacon
+                String uuid = String::format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+                buf[4], buf[5], buf[6], // skip buf[7] - it says what color of tilt
+                buf[8], buf[9], buf[10], buf[11],
+                buf[12], buf[13], buf[14], buf[15],
+                buf[16], buf[17], buf[18], buf[19]);
+
+                if (uuid == "A495BBC5B14B44B5121370F02D74DE") { // we found a tilt
+                beaconMajor = String::format("Temp = %d", (buf[20] * 256) + buf[21]);
+                tilt_sg = ((buf[22] * 256) + buf[23]) / 1000.0;
+                }
+            }
         }
-      }
     }
 }
 #endif
 
 void setupCloudInterface() {
-  Particle.variable("SystemStatus", system_status);
-  Particle.variable("TuningStatus", system_tuning);
-  Particle.variable("Uptime", uptime);
+    Particle.variable("SystemStatus", system_status);
+    Particle.variable("TuningStatus", system_tuning);
+    Particle.variable("Uptime", uptime);
 
-  Particle.function("setBeerTarget", setBeerTarget);
-  Particle.function("setPauseState", setPause);
+    Particle.function("setBeerTarget", setBeerTarget);
+    Particle.function("setPauseState", setPause);
 
-  Particle.function("setBeerP", setBeerP);
-  Particle.function("setBeerI", setBeerI);
-  Particle.function("setBeerD", setBeerD);
+    Particle.function("setBeerP", setBeerP);
+    Particle.function("setBeerI", setBeerI);
+    Particle.function("setBeerD", setBeerD);
 
-  Particle.function("setChamberP", setChamberP);
-  Particle.function("setChamberI", setChamberI);
-  Particle.function("setChamberD", setChamberD);
+    Particle.function("setChamberP", setChamberP);
+    Particle.function("setChamberI", setChamberI);
+    Particle.function("setChamberD", setChamberD);
 
-  // Always expose these, just may not be valid values
-  Particle.variable("bleDeviceCount", ble_max_count);
-  Particle.variable("beaconMajor", beaconMajor);
+    // Always expose these, just may not be valid values
+    Particle.variable("bleDeviceCount", ble_max_count);
+    Particle.variable("beaconMajor", beaconMajor);
 }
 
 //---------------------------------------------------------------------------
 // called from setup, runs once, when the device is first turned on.
 //---------------------------------------------------------------------------
 void setupPinModes() {
-  Serial.println("Setup Pin Modes");
-  // Start with relays off
-  pinMode(COOL_PIN, OUTPUT);
-  digitalWrite(COOL_PIN, LOW);
+    Serial.println("Setup Pin Modes");
+    // Start with relays off
+    pinMode(COOL_PIN, OUTPUT);
+    digitalWrite(COOL_PIN, LOW);
 
-  pinMode(HEAT_PIN, OUTPUT);
-  digitalWrite(HEAT_PIN, LOW);
+    pinMode(HEAT_PIN, OUTPUT);
+    digitalWrite(HEAT_PIN, LOW);
 
-  pinMode(HEARTBEAT_PIN, OUTPUT);
-  digitalWrite(HEARTBEAT_PIN, LOW);
+    pinMode(HEARTBEAT_PIN, OUTPUT);
+    digitalWrite(HEARTBEAT_PIN, LOW);
 }
 
 //---------------------------------------------------------------------------
 // called from setup, runs once, when the device is first turned on.
 //---------------------------------------------------------------------------
 void setupSerial() {
-  // Just to see what's up
-  Serial.begin(9600);
-  delay(5000); // give time to connect to tty
-  Serial.println("opening");
-  delay(500);
+    // Just to see what's up
+    Serial.begin(9600);
+    delay(5000); // give time to connect to tty
+    Serial.println("opening");
+    delay(500);
 }
 
 //---------------------------------------------------------------------------
