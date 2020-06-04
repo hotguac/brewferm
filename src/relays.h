@@ -25,24 +25,19 @@
 #include "brewferm.h"
 
 class RELAYS {
- public:
-  // Parameter types for some of the functions below
-    const char *types[3] = {"2875857F08000063",
-                            "2874AD7F08000092",
-                            "0000000000000000"};
+    public:
+        RELAYS(void);
+        void heatON(void);
+        void idle(void);
+        void coolON(void);
 
-    RELAYS(void);
-    void heatON(void);
-    void idle(void);
-    void coolON(void);
-
-    mode_heat_cool getHeatCoolStatus();
-    unsigned int get_heat_runtime();
-    unsigned int get_cool_runtime();
+        mode_heat_cool getHeatCoolStatus();
+        unsigned int get_heat_runtime();
+        unsigned int get_cool_runtime();
 
  private:
-    int relayCoolPin = D2;
-    int relayHeatPin = D7;
+    const int relayCoolPin = COOL_PIN;
+    const int relayHeatPin = HEAT_PIN;
 
     // these are in seconds
     unsigned int heat_runtime;

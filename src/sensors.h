@@ -43,45 +43,50 @@ White Data -> yellow
 
 */
 
-//#include "DS18.h"
 #include "DS18B20.h"
 
 #ifndef SENSORS_H_
 #define SENSORS_H_
 
-//#include "lib/OneWire/src/DS18.h"
+#define MAX_SENSORS 4
+#define ADDRESS_SIZE (sizeof(uint8_t) * 8)
 
 class SENSORS {
-   public:
-      // Parameter types for some of the functions below
-      enum sensor_use { BEER = 0, CHAMBER = 1, AMBIENT = 2 };
-      const char *types[3] = {"2875857F08000063",
-                              "2874AD7F08000092",
-                              "0000000000000000"};
+    public:
+        const double beerF_calibrate = -1.9;
+        const double chamberF_calibrate = -1.5;
 
-      const double beerF_calibrate = -1.9;
-      const double chamberF_calibrate = -1.5;
+        SENSORS(void);
+        void init();
 
-      SENSORS(void);
-      void refresh(void);
+        void wait_for_no_sensors();
+        boolean beer_sensor_attached(uint8_t beerAddress[8]);
+        boolean chamber_sensor_attached(uint8_t chamberAddress[8]);
+        boolean ambient_sensor_attached(void);
 
+        boolean assign_beer_sensor(uint8_t addr[8]);
+        boolean assign_chamber_sensor(uint8_t addr[8]);
+        boolean assign_ambient_sensor(uint8_t addr[8]);
 
-      sensor_use GetMode(void);
+        void refresh(void);
+        double GetBeerF();
+        double GetChamberF();
+        double GetAmbientF();
 
-      void SetSampleTime(int);
+    private:
+        float beerF = NAN;
+        float chamberF = NAN;
+        float ambientF = NAN;
 
-      double GetID(sensor_use);
-      double GetTempF(sensor_use);
-      void init(void);
+        int num_sensors = 0;
 
+        uint8_t sensorBeer[8]; // sensor assigned to beer
+        uint8_t sensorChamber[8]; // sensor assigned to chamber
+        uint8_t sensorAmbient[8]; // sensor assigned to ambient
 
-   private:
-      void Initialize();
-      float beerF;
-      float chamberF;
-      float ambientF;
+        uint8_t sensorAddresses[MAX_SENSORS][8]; // all detected sensors
 
-
+        double getTemp(uint8_t addr[8]);
 };
 
 #endif  // SENSORS_H_
